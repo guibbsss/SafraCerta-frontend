@@ -1,0 +1,128 @@
+<div class="space-y-6">
+  <div class="flex justify-between items-center bg-white rounded-lg shadow p-6">
+    <h1 class="text-3xl font-bold text-primary-green">💰 Controle Financeiro</h1>
+    <button class="bg-primary-green hover:bg-green-700 text-white font-semibold py-2 px-6 rounded-lg transition" (click)="openForm()">+ Novo Registro</button>
+  </div>
+
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+    <div class="bg-green-50 border border-green-200 rounded-lg p-4">
+      <h3 class="text-sm font-semibold text-green-800">💵 Receitas</h3>
+      <p class="text-2xl font-bold text-green-700 mt-2">R$ {{ getTotalReceitas() | number: '1.2-2' }}</p>
+    </div>
+    <div class="bg-red-50 border border-red-200 rounded-lg p-4">
+      <h3 class="text-sm font-semibold text-red-800">💸 Despesas</h3>
+      <p class="text-2xl font-bold text-red-700 mt-2">R$ {{ getTotalDespesas() | number: '1.2-2' }}</p>
+    </div>
+    <div class="rounded-lg p-4 border" [ngClass]="getSaldo() < 0 ? 'bg-red-50 border-red-200' : 'bg-blue-50 border-blue-200'">
+      <h3 class="text-sm font-semibold" [ngClass]="getSaldo() < 0 ? 'text-red-800' : 'text-blue-800'">💰 Saldo</h3>
+      <p class="text-2xl font-bold mt-2" [ngClass]="getSaldo() < 0 ? 'text-red-700' : 'text-blue-700'">R$ {{ getSaldo() | number: '1.2-2' }}</p>
+    </div>
+  </div>
+
+  <div class="bg-white rounded-lg shadow-lg p-6" *ngIf="showForm">
+    <h2 class="text-2xl font-bold text-gray-800 mb-6">{{ editMode ? 'Editar Registro' : 'Novo Registro' }}</h2>
+    <form (ngSubmit)="saveFinanceiro()" class="space-y-4">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">Tipo</label>
+          <select [(ngModel)]="selectedFinanceiro.tipo" name="tipo" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-green focus:border-transparent">
+            <option value="RECEITA">Receita</option>
+            <option value="DESPESA">Despesa</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">Categoria</label>
+          <input type="text" [(ngModel)]="selectedFinanceiro.categoria" name="categoria" placeholder="Ex: Venda de grãos, Compra de insumos..." required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-green focus:border-transparent" />
+        </div>
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-2">Descrição</label>
+        <textarea [(ngModel)]="selectedFinanceiro.descricao" name="descricao" rows="2" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-green focus:border-transparent"></textarea>
+      </div>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">Valor (R$)</label>
+          <input type="number" [(ngModel)]="selectedFinanceiro.valor" name="valor" step="0.01" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-green focus:border-transparent" />
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">Data</label>
+          <input type="date" [(ngModel)]="selectedFinanceiro.data" name="data" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-green focus:border-transparent" />
+        </div>
+      </div>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">Forma de Pagamento</label>
+          <input type="text" [(ngModel)]="selectedFinanceiro.formaPagamento" name="formaPagamento" placeholder="Dinheiro, PIX, Cartão..." required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-green focus:border-transparent" />
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">Status</label>
+          <select [(ngModel)]="selectedFinanceiro.status" name="status" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-green focus:border-transparent">
+            <option value="PENDENTE">Pendente</option>
+            <option value="PAGO">Pago</option>
+            <option value="ATRASADO">Atrasado</option>
+          </select>
+        </div>
+      </div>
+      <div class="flex gap-3 pt-4">
+        <button type="submit" class="bg-primary-green hover:bg-green-700 text-white font-semibold py-2 px-6 rounded-lg transition">Salvar</button>
+        <button type="button" class="bg-gray-500 hover:bg-gray-600 text-white font-semibold py-2 px-6 rounded-lg transition" (click)="closeForm()">Cancelar</button>
+      </div>
+    </form>
+  </div>
+
+  <div class="bg-white rounded-lg shadow-lg overflow-hidden">
+    <div class="overflow-x-auto" *ngIf="financeiros.length > 0; else noData">
+      <table class="w-full">
+        <thead class="bg-primary-green text-white">
+        <tr>
+          <th class="px-6 py-4 text-left text-sm font-semibold">Data</th>
+          <th class="px-6 py-4 text-left text-sm font-semibold">Tipo</th>
+          <th class="px-6 py-4 text-left text-sm font-semibold">Categoria</th>
+          <th class="px-6 py-4 text-left text-sm font-semibold">Descrição</th>
+          <th class="px-6 py-4 text-left text-sm font-semibold">Valor</th>
+          <th class="px-6 py-4 text-left text-sm font-semibold">Forma Pgto</th>
+          <th class="px-6 py-4 text-left text-sm font-semibold">Status</th>
+          <th class="px-6 py-4 text-left text-sm font-semibold">Ações</th>
+        </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-200">
+          <tr *ngFor="let financeiro of financeiros" class="hover:bg-gray-50 transition">
+            <td class="px-6 py-4 text-sm text-gray-900">{{ financeiro.data | date: 'dd/MM/yyyy' }}</td>
+            <td class="px-6 py-4 text-sm">
+            <span class="px-3 py-1 rounded-full text-xs font-semibold" [ngClass]="{
+              'bg-green-100 text-green-800': financeiro.tipo === 'RECEITA',
+              'bg-red-100 text-red-800': financeiro.tipo === 'DESPESA'
+            }">
+              {{ financeiro.tipo }}
+            </span>
+            </td>
+            <td class="px-6 py-4 text-sm text-gray-900">{{ financeiro.categoria }}</td>
+            <td class="px-6 py-4 text-sm text-gray-900">{{ financeiro.descricao }}</td>
+            <td class="px-6 py-4 text-sm font-semibold" [ngClass]="financeiro.tipo === 'RECEITA' ? 'text-green-700' : 'text-red-700'">
+              R$ {{ financeiro.valor | number: '1.2-2' }}
+            </td>
+            <td class="px-6 py-4 text-sm text-gray-900">{{ financeiro.formaPagamento }}</td>
+            <td class="px-6 py-4 text-sm">
+            <span class="px-3 py-1 rounded-full text-xs font-semibold" [ngClass]="{
+              'bg-yellow-100 text-yellow-800': financeiro.status === 'PENDENTE',
+              'bg-green-100 text-green-800': financeiro.status === 'PAGO',
+              'bg-red-100 text-red-800': financeiro.status === 'ATRASADO'
+            }">
+              {{ financeiro.status }}
+            </span>
+            </td>
+            <td class="px-6 py-4 text-sm">
+              <button class="text-2xl hover:scale-110 transition mr-2" (click)="openForm(financeiro)" title="Editar">✏️</button>
+              <button class="text-2xl hover:scale-110 transition" (click)="deleteFinanceiro(financeiro.id!)" title="Excluir">🗑️</button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <ng-template #noData>
+      <div class="p-12 text-center">
+        <p class="text-gray-500 text-lg">Nenhum registro financeiro ainda.</p>
+      </div>
+    </ng-template>
+  </div>
+</div>

@@ -1,0 +1,105 @@
+<div class="space-y-6">
+  <div class="flex justify-between items-center bg-white rounded-lg shadow p-6">
+    <h1 class="text-3xl font-bold text-primary-green">📦 Controle de Estoque</h1>
+    <button class="bg-primary-green hover:bg-green-700 text-white font-semibold py-2 px-6 rounded-lg transition" (click)="openForm()">+ Novo Item</button>
+  </div>
+
+  <div class="bg-white rounded-lg shadow-lg p-6" *ngIf="showForm">
+    <h2 class="text-2xl font-bold text-gray-800 mb-6">{{ editMode ? 'Editar Item' : 'Novo Item' }}</h2>
+    <form (ngSubmit)="saveEstoque()" class="space-y-4">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">Nome do Item</label>
+          <input type="text" [(ngModel)]="selectedEstoque.nome" name="nome" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-green focus:border-transparent" />
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">Tipo</label>
+          <select [(ngModel)]="selectedEstoque.tipo" name="tipo" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-green focus:border-transparent">
+            <option value="SEMENTE">Semente</option>
+            <option value="FERTILIZANTE">Fertilizante</option>
+            <option value="AGROTOXICO">Agrotóxico</option>
+            <option value="EQUIPAMENTO">Equipamento</option>
+            <option value="OUTRO">Outro</option>
+          </select>
+        </div>
+      </div>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">Quantidade</label>
+          <input type="number" [(ngModel)]="selectedEstoque.quantidade" name="quantidade" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-green focus:border-transparent" />
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">Unidade</label>
+          <input type="text" [(ngModel)]="selectedEstoque.unidade" name="unidade" placeholder="kg, L, unidade..." required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-green focus:border-transparent" />
+        </div>
+      </div>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">Valor Unitário (R$)</label>
+          <input type="number" [(ngModel)]="selectedEstoque.valorUnitario" name="valorUnitario" step="0.01" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-green focus:border-transparent" />
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">Data de Entrada</label>
+          <input type="date" [(ngModel)]="selectedEstoque.dataEntrada" name="dataEntrada" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-green focus:border-transparent" />
+        </div>
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-2">Fornecedor</label>
+        <input type="text" [(ngModel)]="selectedEstoque.fornecedor" name="fornecedor" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-green focus:border-transparent" />
+      </div>
+      <div class="flex gap-3 pt-4">
+        <button type="submit" class="bg-primary-green hover:bg-green-700 text-white font-semibold py-2 px-6 rounded-lg transition">Salvar</button>
+        <button type="button" class="bg-gray-500 hover:bg-gray-600 text-white font-semibold py-2 px-6 rounded-lg transition" (click)="closeForm()">Cancelar</button>
+      </div>
+    </form>
+  </div>
+
+  <div class="bg-white rounded-lg shadow-lg overflow-hidden">
+    <div class="overflow-x-auto" *ngIf="estoques.length > 0; else noData">
+      <table class="w-full">
+        <thead class="bg-primary-green text-white">
+        <tr>
+          <th class="px-6 py-4 text-left text-sm font-semibold">Nome</th>
+          <th class="px-6 py-4 text-left text-sm font-semibold">Tipo</th>
+          <th class="px-6 py-4 text-left text-sm font-semibold">Quantidade</th>
+          <th class="px-6 py-4 text-left text-sm font-semibold">Unidade</th>
+          <th class="px-6 py-4 text-left text-sm font-semibold">Valor Unit.</th>
+          <th class="px-6 py-4 text-left text-sm font-semibold">Valor Total</th>
+          <th class="px-6 py-4 text-left text-sm font-semibold">Fornecedor</th>
+          <th class="px-6 py-4 text-left text-sm font-semibold">Ações</th>
+        </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-200">
+          <tr *ngFor="let estoque of estoques" class="hover:bg-gray-50 transition">
+            <td class="px-6 py-4 text-sm text-gray-900">{{ estoque.nome }}</td>
+            <td class="px-6 py-4 text-sm">
+            <span class="px-3 py-1 rounded-full text-xs font-semibold" [ngClass]="{
+              'bg-green-100 text-green-800': estoque.tipo === 'SEMENTE',
+              'bg-lime-100 text-lime-800': estoque.tipo === 'FERTILIZANTE',
+              'bg-red-100 text-red-800': estoque.tipo === 'AGROTOXICO',
+              'bg-blue-100 text-blue-800': estoque.tipo === 'EQUIPAMENTO',
+              'bg-gray-100 text-gray-800': estoque.tipo === 'OUTRO'
+            }">
+              {{ estoque.tipo }}
+            </span>
+            </td>
+            <td class="px-6 py-4 text-sm text-gray-900">{{ estoque.quantidade }}</td>
+            <td class="px-6 py-4 text-sm text-gray-900">{{ estoque.unidade }}</td>
+            <td class="px-6 py-4 text-sm text-gray-900">R$ {{ estoque.valorUnitario | number: '1.2-2' }}</td>
+            <td class="px-6 py-4 text-sm text-gray-900">R$ {{ (estoque.quantidade * estoque.valorUnitario) | number: '1.2-2' }}</td>
+            <td class="px-6 py-4 text-sm text-gray-900">{{ estoque.fornecedor }}</td>
+            <td class="px-6 py-4 text-sm">
+              <button class="text-2xl hover:scale-110 transition mr-2" (click)="openForm(estoque)" title="Editar">✏️</button>
+              <button class="text-2xl hover:scale-110 transition" (click)="deleteEstoque(estoque.id!)" title="Excluir">🗑️</button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <ng-template #noData>
+      <div class="p-12 text-center">
+        <p class="text-gray-500 text-lg">Nenhum item em estoque ainda.</p>
+      </div>
+    </ng-template>
+  </div>
+</div>

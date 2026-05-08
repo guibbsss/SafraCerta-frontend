@@ -1,0 +1,42 @@
+<div class="flex h-screen bg-gray-50">
+  <aside [class]="sidebarOpen ? 'w-64' : 'w-20'" class="bg-primary-green text-white transition-all duration-300 flex flex-col">
+    <div class="p-4 border-b border-green-700">
+      <h2 *ngIf="sidebarOpen" class="text-2xl font-bold">🌾 Safra Certa</h2>
+      <h2 *ngIf="!sidebarOpen" class="text-2xl text-center">🌾</h2>
+    </div>
+
+    <nav class="flex-1 py-4">
+      <a
+        *ngFor="let item of menuItems"
+        [routerLink]="item.path"
+        routerLinkActive="bg-green-700"
+        class="flex items-center px-4 py-3 hover:bg-green-600 transition-colors cursor-pointer"
+      >
+        <span class="text-xl">{{ item.icon }}</span>
+        <span *ngIf="sidebarOpen" class="ml-4 font-medium">{{ item.label }}</span>
+      </a>
+    </nav>
+
+    <div class="p-4 border-t border-green-700">
+      <button class="flex items-center w-full px-4 py-2 hover:bg-green-600 rounded transition-colors" (click)="logout()">
+        <span class="text-xl">🚪</span>
+        <span *ngIf="sidebarOpen" class="ml-4 font-medium">Sair</span>
+      </button>
+    </div>
+  </aside>
+
+  <div class="flex-1 flex flex-col overflow-hidden">
+    <header class="bg-white shadow-sm h-16 flex items-center px-6">
+      <button class="text-2xl text-gray-600 hover:text-primary-green transition-colors" (click)="toggleSidebar()">
+        ☰
+      </button>
+      <div class="ml-auto flex items-center" *ngIf="currentUser$ | async as user">
+        <span class="text-gray-700">👤 {{ user.nome }}</span>
+      </div>
+    </header>
+
+    <main class="flex-1 overflow-y-auto p-6">
+      <router-outlet></router-outlet>
+    </main>
+  </div>
+</div>
