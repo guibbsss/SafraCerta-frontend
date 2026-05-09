@@ -11,6 +11,10 @@ import { AtividadeListComponent } from './components/atividade/atividade-list/at
 import { EstoqueListComponent } from './components/estoque/estoque-list/estoque-list.component';
 import { FinanceiroListComponent } from './components/financeiro/financeiro-list/financeiro-list.component';
 import { DashboardComponent } from './components/dashboard/dashboard.component';
+import { AdministracaoShellComponent } from './components/administracao/administracao-shell.component';
+import { AdministracaoHubComponent } from './components/administracao/administracao-hub.component';
+import { AdministracaoPerfisComponent } from './components/administracao/administracao-perfis.component';
+import { AdministracaoPermissoesComponent } from './components/administracao/administracao-permissoes.component';
 
 export const routes: Routes = [
   { path: 'login', component: LoginComponent },
@@ -28,7 +32,16 @@ export const routes: Routes = [
       { path: 'safras', component: SafraListComponent },
       { path: 'atividades', component: AtividadeListComponent },
       { path: 'estoque', component: EstoqueListComponent },
-      { path: 'financeiro', component: FinanceiroListComponent }
+      { path: 'financeiro', component: FinanceiroListComponent },
+      {
+        path: 'administracao',
+        component: AdministracaoShellComponent,
+        children: [
+          { path: '', component: AdministracaoHubComponent },
+          { path: 'perfis', component: AdministracaoPerfisComponent },
+          { path: 'permissoes', component: AdministracaoPermissoesComponent }
+        ]
+      }
     ]
   },
   { path: '**', redirectTo: 'login' }

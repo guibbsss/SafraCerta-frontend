@@ -10,6 +10,9 @@
         *ngFor="let item of menuItems"
         [routerLink]="item.path"
         routerLinkActive="bg-green-700"
+        [routerLinkActiveOptions]="
+          item.linkActiveExact === false ? { exact: false } : { exact: true }
+        "
         class="flex items-center px-4 py-3 hover:bg-green-600 transition-colors cursor-pointer"
       >
         <span class="text-xl">{{ item.icon }}</span>
