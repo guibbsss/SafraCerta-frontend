@@ -4,6 +4,7 @@ export interface User {
   password?: string;
   nome: string;
   token?: string;
+  ativo?: boolean;
 }
 
 export interface LoginRequest {
@@ -14,4 +15,20 @@ export interface LoginRequest {
 export interface LoginResponse {
   token: string;
   user: User;
+}
+
+/** Payload enviado ao POST /auth/register */
+export interface RegistroUsuarioPayload {
+  nome: string;
+  email: string;
+  senha: string;
+  codigoAcesso: string;
+}
+
+export interface RegistroUsuarioResponse {
+  id: number;
+  nome: string;
+  email: string;
+  ativo: boolean;
+  mensagem: string;
 }

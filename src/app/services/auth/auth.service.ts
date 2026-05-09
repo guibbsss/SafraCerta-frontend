@@ -3,7 +3,13 @@ import { HttpClient } from '@angular/common/http';
 import { Observable, BehaviorSubject } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { environment } from '../../../environments/environment';
-import { LoginRequest, LoginResponse, User } from '../../models/user.model';
+import {
+  LoginRequest,
+  LoginResponse,
+  RegistroUsuarioPayload,
+  RegistroUsuarioResponse,
+  User
+} from '../../models/user.model';
 
 @Injectable({
   providedIn: 'root'
@@ -21,18 +27,17 @@ export class AuthService {
   }
 
   login(credentials: LoginRequest): Observable<LoginResponse> {
-    return this.http.post<LoginResponse>(`${this.apiUrl}/login`, credentials)
-      .pipe(
-        tap(response => {
-          localStorage.setItem('currentUser', JSON.stringify(response.user));
-          localStorage.setItem('token', response.token);
-          this.currentUserSubject.next(response.user);
-        })
-      );
+    return this.http.post<LoginResponse>(`${this.apiUrl}/login`, credentials).pipe(
+      tap(response => {
+        localStorage.setItem('currentUser', JSON.stringify(response.user));
+        localStorage.setItem('token', response.token);
+        this.currentUserSubject.next(response.user);
+      })
+    );
   }
 
-  register(user: User): Observable<User> {
-    return this.http.post<User>(`${this.apiUrl}/register`, user);
+  register(payload: RegistroUsuarioPayload): Observable<RegistroUsuarioResponse> {
+    return this.http.post<RegistroUsuarioResponse>(`${this.apiUrl}/register`, payload);
   }
 
   logout(): void {

@@ -2,8 +2,8 @@ import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
+import { HttpErrorResponse } from '@angular/common/http';
 import { AuthService } from '../../../services/auth/auth.service';
-import { User } from '../../../models/user.model';
 
 @Component({
   selector: 'app-register',
@@ -13,13 +13,11 @@ import { User } from '../../../models/user.model';
   styleUrls: ['./register.component.css']
 })
 export class RegisterComponent {
-  user: User = {
-    nome: '',
-    email: '',
-    password: ''
-  };
-
+  nome = '';
+  email = '';
+  password = '';
   confirmPassword = '';
+  codigoAcesso = '';
   errorMessage = '';
   successMessage = '';
   isLoading = false;
@@ -30,13 +28,25 @@ export class RegisterComponent {
   ) {}
 
   onSubmit(): void {
-    if (!this.user.nome || !this.user.email || !this.user.password || !this.confirmPassword) {
+    if (
+      !this.nome ||
+      !this.email ||
+      !this.password ||
+      !this.confirmPassword ||
+      !this.codigoAcesso
+    ) {
       this.errorMessage = 'Por favor, preencha todos os campos';
       this.successMessage = '';
       return;
     }
 
-    if (this.user.password !== this.confirmPassword) {
+    if (this.codigoAcesso.trim().length < 10) {
+      this.errorMessage = 'O código de acesso da fazenda deve ter pelo menos 10 caracteres';
+      this.successMessage = '';
+      return;
+    }
+
+    if (this.password !== this.confirmPassword) {
       this.errorMessage = 'As senhas nao coincidem';
       this.successMessage = '';
       return;
@@ -46,20 +56,35 @@ export class RegisterComponent {
     this.errorMessage = '';
     this.successMessage = '';
 
-    this.authService.register(this.user).subscribe({
-      next: () => {
-        this.successMessage = 'Cadastro realizado com sucesso! Redirecionando para login...';
-        this.isLoading = false;
-        setTimeout(() => this.router.navigate(['/login']), 1200);
-      },
-      error: () => {
-        // Fallback para demonstracao sem backend.
-        localStorage.setItem('registeredUser', JSON.stringify(this.user));
-        this.successMessage = 'Cadastro salvo localmente. Redirecionando para login...';
-        this.isLoading = false;
-        setTimeout(() => this.router.navigate(['/login']), 1200);
-      }
-    });
+    this.authService
+      .register({
+        nome: this.nome.trim(),
+        email: this.email.trim(),
+        senha: this.password,
+        codigoAcesso: this.codigoAcesso.trim()
+      })
+      .subscribe({
+        next: (res) => {
+          this.successMessage = res.mensagem + ' Redirecionando para o login...';
+          this.isLoading = false;
+          setTimeout(() => this.router.navigate(['/login']), 2000);
+        },
+        error: (err: HttpErrorResponse) => {
+          console.error('[cadastro]', {
+            status: err.status,
+            statusText: err.statusText,
+            url: err.url,
+            body: err.error
+          });
+          this.isLoading = false;
+          const body = err.error as { detail?: string; message?: string } | undefined;
+          this.errorMessage =
+            body?.detail ||
+            body?.message ||
+            (typeof err.error === 'string' ? err.error : null) ||
+            'Nao foi possivel concluir o cadastro. Tente novamente.';
+        }
+      });
   }
 
   goToLogin(): void {

@@ -2,6 +2,7 @@ import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
+import { HttpErrorResponse } from '@angular/common/http';
 import { AuthService } from '../../../services/auth/auth.service';
 import { LoginRequest } from '../../../models/user.model';
 
@@ -36,38 +37,18 @@ export class LoginComponent {
 
     this.authService.login(this.credentials).subscribe({
       next: () => {
+        this.isLoading = false;
         this.router.navigate(['/home']);
       },
-      error: () => {
-        const registeredUserRaw = localStorage.getItem('registeredUser');
-        const registeredUser = registeredUserRaw ? JSON.parse(registeredUserRaw) : null;
-
-        // Fallback para demonstracao sem backend: permite entrar com usuario cadastrado localmente.
-        if (
-          registeredUser &&
-          registeredUser.email === this.credentials.email &&
-          registeredUser.password === this.credentials.password
-        ) {
-          localStorage.setItem('currentUser', JSON.stringify(registeredUser));
-          localStorage.setItem('token', 'mock-token');
-          this.router.navigate(['/home']);
-          return;
-        }
-
-        // Sem usuario cadastrado, libera acesso mock para demonstracao.
-        if (!registeredUser) {
-          const mockUser = {
-            nome: 'Usuario Demo',
-            email: this.credentials.email
-          };
-          localStorage.setItem('currentUser', JSON.stringify(mockUser));
-          localStorage.setItem('token', 'mock-token');
-          this.router.navigate(['/home']);
-          return;
-        }
-
-        this.errorMessage = 'Email ou senha inválidos';
+      error: (err: HttpErrorResponse) => {
         this.isLoading = false;
+        const body = err.error as { detail?: string; message?: string } | undefined;
+        this.errorMessage =
+          body?.detail ||
+          body?.message ||
+          (err.status === 403
+            ? 'Conta aguardando ativação pelo administrador.'
+            : 'Email ou senha inválidos.');
       }
     });
   }
