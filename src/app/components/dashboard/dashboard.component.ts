@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FazendaService } from '../../services/fazenda/fazenda.service';
+import { AuthService } from '../../services/auth/auth.service';
 import { SafraService } from '../../services/safra/safra.service';
 import { FinanceiroService } from '../../services/financeiro/financeiro.service';
 import { EstoqueService } from '../../services/estoque/estoque.service';
@@ -25,6 +26,7 @@ export class DashboardComponent implements OnInit {
 
   constructor(
     private fazendaService: FazendaService,
+    private authService: AuthService,
     private safraService: SafraService,
     private financeiroService: FinanceiroService,
     private estoqueService: EstoqueService
@@ -37,8 +39,9 @@ export class DashboardComponent implements OnInit {
   loadDashboardData(): void {
     this.loadMockData();
 
-    this.fazendaService.getAll().subscribe({
-      next: (data) => this.stats.totalFazendas = data.length,
+    const usuarioId = this.authService.getCurrentUserId() ?? 1;
+    this.fazendaService.getAllByUsuario(usuarioId).subscribe({
+      next: (data) => (this.stats.totalFazendas = data.length),
       error: () => console.log('Backend indisponível. Mantendo estatísticas mockadas.')
     });
 

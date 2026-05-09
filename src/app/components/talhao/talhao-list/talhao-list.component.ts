@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TalhaoService } from '../../../services/talhao/talhao.service';
 import { FazendaService } from '../../../services/fazenda/fazenda.service';
+import { AuthService } from '../../../services/auth/auth.service';
 import { Talhao } from '../../../models/talhao.model';
 import { Fazenda } from '../../../models/fazenda.model';
 
@@ -22,7 +23,8 @@ export class TalhaoListComponent implements OnInit {
 
   constructor(
     private talhaoService: TalhaoService,
-    private fazendaService: FazendaService
+    private fazendaService: FazendaService,
+    private authService: AuthService
   ) {}
 
   ngOnInit(): void {
@@ -50,16 +52,13 @@ export class TalhaoListComponent implements OnInit {
   }
 
   loadFazendas(): void {
-    this.fazendas = [
-      { id: 1, nome: 'Fazenda Boa Vista', proprietario: 'João Silva', localizacao: 'Goiás - GO', areaTotal: 500 },
-      { id: 2, nome: 'Fazenda Santa Clara', proprietario: 'Maria Santos', localizacao: 'Mato Grosso - MT', areaTotal: 850 },
-      { id: 3, nome: 'Fazenda São Paulo', proprietario: 'Pedro Oliveira', localizacao: 'São Paulo - SP', areaTotal: 320 },
-      { id: 4, nome: 'Fazenda Recanto Verde', proprietario: 'Ana Costa', localizacao: 'Minas Gerais - MG', areaTotal: 650 },
-      { id: 5, nome: 'Fazenda Horizonte', proprietario: 'Carlos Lima', localizacao: 'Bahia - BA', areaTotal: 1200 }
-    ];
-    this.fazendaService.getAll().subscribe({
-      next: (data) => this.fazendas = data,
-      error: () => console.log('Backend indisponível. Mantendo fazendas mockadas no dropdown.')
+    const usuarioId = this.authService.getCurrentUserId() ?? 1;
+    this.fazendaService.getAllByUsuario(usuarioId).subscribe({
+      next: (data) => (this.fazendas = data),
+      error: () => {
+        console.log('Backend indisponível. Lista de fazendas vazia no dropdown.');
+        this.fazendas = [];
+      }
     });
   }
 

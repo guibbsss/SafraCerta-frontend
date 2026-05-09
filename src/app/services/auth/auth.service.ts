@@ -48,4 +48,13 @@ export class AuthService {
   getToken(): string | null {
     return localStorage.getItem('token');
   }
+
+  getCurrentUser(): User | null {
+    return this.currentUserSubject.value;
+  }
+
+  getCurrentUserId(): number | undefined {
+    const u = this.getCurrentUser();
+    return u?.id;
+  }
 }

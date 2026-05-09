@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { FazendaService } from '../../../services/fazenda/fazenda.service';
+import { AuthService } from '../../../services/auth/auth.service';
 import { Fazenda } from '../../../models/fazenda.model';
 
 @Component({
@@ -17,28 +18,24 @@ export class FazendaListComponent implements OnInit {
   editMode = false;
   selectedFazenda: Fazenda = this.getEmptyFazenda();
 
-  constructor(private fazendaService: FazendaService) {}
+  constructor(
+    private fazendaService: FazendaService,
+    private authService: AuthService
+  ) {}
 
   ngOnInit(): void {
     this.loadFazendas();
   }
 
   loadFazendas(): void {
-    this.loadMockData();
-    this.fazendaService.getAll().subscribe({
-      next: (data) => this.fazendas = data,
-      error: () => console.log('Backend indisponível. Mantendo dados mockados.')
+    const usuarioId = this.authService.getCurrentUserId() ?? 1;
+    this.fazendaService.getAllByUsuario(usuarioId).subscribe({
+      next: (data) => (this.fazendas = data),
+      error: () => {
+        console.log('Backend indisponível ou usuário sem fazendas.');
+        this.fazendas = [];
+      }
     });
-  }
-
-  loadMockData(): void {
-    this.fazendas = [
-      { id: 1, nome: 'Fazenda Boa Vista', proprietario: 'João Silva', localizacao: 'Goiás - GO', areaTotal: 500 },
-      { id: 2, nome: 'Fazenda Santa Clara', proprietario: 'Maria Santos', localizacao: 'Mato Grosso - MT', areaTotal: 850 },
-      { id: 3, nome: 'Fazenda São Paulo', proprietario: 'Pedro Oliveira', localizacao: 'São Paulo - SP', areaTotal: 320 },
-      { id: 4, nome: 'Fazenda Recanto Verde', proprietario: 'Ana Costa', localizacao: 'Minas Gerais - MG', areaTotal: 650 },
-      { id: 5, nome: 'Fazenda Horizonte', proprietario: 'Carlos Lima', localizacao: 'Bahia - BA', areaTotal: 1200 }
-    ];
   }
 
   openForm(fazenda?: Fazenda): void {
@@ -58,22 +55,42 @@ export class FazendaListComponent implements OnInit {
   }
 
   saveFazenda(): void {
-    if (this.editMode && this.selectedFazenda.id) {
-      this.fazendaService.update(this.selectedFazenda.id, this.selectedFazenda).subscribe({
-        next: () => {
-          this.loadFazendas();
-          this.closeForm();
-        },
-        error: (error) => console.error('Erro ao atualizar fazenda:', error)
-      });
+    if (this.editMode && this.selectedFazenda.id != null) {
+      this.fazendaService
+        .update(this.selectedFazenda.id, {
+          nome: this.selectedFazenda.nome,
+          localizacao: this.selectedFazenda.localizacao,
+          areaTotal: this.selectedFazenda.areaTotal
+        })
+        .subscribe({
+          next: () => {
+            this.loadFazendas();
+            this.closeForm();
+          },
+          error: (error) => console.error('Erro ao atualizar fazenda:', error)
+        });
     } else {
-      this.fazendaService.create(this.selectedFazenda).subscribe({
-        next: () => {
-          this.loadFazendas();
-          this.closeForm();
-        },
-        error: (error) => console.error('Erro ao criar fazenda:', error)
-      });
+      let proprietarioId = this.authService.getCurrentUserId();
+      if (proprietarioId == null) {
+        proprietarioId = 1;
+        console.warn(
+          'Usuário sem id no perfil; usando proprietarioId=1 (apenas desenvolvimento).'
+        );
+      }
+      this.fazendaService
+        .create({
+          nome: this.selectedFazenda.nome,
+          localizacao: this.selectedFazenda.localizacao,
+          areaTotal: this.selectedFazenda.areaTotal,
+          proprietarioId
+        })
+        .subscribe({
+          next: () => {
+            this.loadFazendas();
+            this.closeForm();
+          },
+          error: (error) => console.error('Erro ao criar fazenda:', error)
+        });
     }
   }
 
@@ -90,8 +107,7 @@ export class FazendaListComponent implements OnInit {
     return {
       nome: '',
       localizacao: '',
-      areaTotal: 0,
-      proprietario: ''
+      areaTotal: 0
     };
   }
 }

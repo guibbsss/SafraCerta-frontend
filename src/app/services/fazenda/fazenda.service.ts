@@ -2,7 +2,11 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
-import { Fazenda } from '../../models/fazenda.model';
+import {
+  Fazenda,
+  FazendaCreatePayload,
+  FazendaUpdatePayload
+} from '../../models/fazenda.model';
 
 @Injectable({
   providedIn: 'root'
@@ -16,16 +20,21 @@ export class FazendaService {
     return this.http.get<Fazenda[]>(this.apiUrl);
   }
 
+  /** Fazendas vinculadas ao usuário (tabela fazenda_has_usuario). */
+  getAllByUsuario(usuarioId: number): Observable<Fazenda[]> {
+    return this.http.get<Fazenda[]>(`${this.apiUrl}/usuario/${usuarioId}`);
+  }
+
   getById(id: number): Observable<Fazenda> {
     return this.http.get<Fazenda>(`${this.apiUrl}/${id}`);
   }
 
-  create(fazenda: Fazenda): Observable<Fazenda> {
-    return this.http.post<Fazenda>(this.apiUrl, fazenda);
+  create(payload: FazendaCreatePayload): Observable<Fazenda> {
+    return this.http.post<Fazenda>(this.apiUrl, payload);
   }
 
-  update(id: number, fazenda: Fazenda): Observable<Fazenda> {
-    return this.http.put<Fazenda>(`${this.apiUrl}/${id}`, fazenda);
+  update(id: number, payload: FazendaUpdatePayload): Observable<Fazenda> {
+    return this.http.put<Fazenda>(`${this.apiUrl}/${id}`, payload);
   }
 
   delete(id: number): Observable<void> {
