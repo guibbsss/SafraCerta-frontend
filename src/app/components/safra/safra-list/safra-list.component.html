@@ -6,24 +6,56 @@
 
   <div class="bg-white rounded-lg shadow-lg p-6" *ngIf="showForm">
     <h2 class="text-2xl font-bold text-gray-800 mb-6">{{ editMode ? 'Editar Safra' : 'Nova Safra' }}</h2>
-    <form (ngSubmit)="saveSafra()" class="space-y-4">
+    <form (ngSubmit)="saveSafra()" #safraForm="ngForm" class="space-y-4" novalidate>
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
           <label class="block text-sm font-medium text-gray-700 mb-2">Nome da Safra</label>
-          <input type="text" [(ngModel)]="selectedSafra.nome" name="nome" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-green focus:border-transparent" />
+          <input
+            type="text"
+            [(ngModel)]="selectedSafra.nome"
+            name="nome"
+            #nome="ngModel"
+            (input)="onNomeInput($event)"
+            [minlength]="NOME_MIN"
+            [maxlength]="NOME_MAX"
+            required
+            placeholder="Ex.: Safra Soja 2025/2026"
+            autocomplete="off"
+            class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary-green focus:border-transparent"
+            [ngClass]="nome.touched && nome.invalid ? 'border-red-400' : 'border-gray-300'"
+          />
+          <p class="text-xs text-red-600 mt-1" *ngIf="nome.touched && nome.errors?.['required']">Informe o nome da safra.</p>
+          <p class="text-xs text-red-600 mt-1" *ngIf="nome.touched && nome.errors?.['minlength']">Mínimo de {{ NOME_MIN }} caracteres.</p>
+          <p class="text-xs text-gray-400 mt-1" *ngIf="!nome.errors">Letras, números, espaço, "/", "-", "." ou "_". Máx. {{ NOME_MAX }}.</p>
         </div>
         <div>
-          <label class="block text-sm font-medium text-gray-700 mb-2">Talhão</label>
-          <select [(ngModel)]="selectedSafra.talhaoId" name="talhaoId" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-green focus:border-transparent">
-            <option value="0">Selecione um talhão</option>
-            <option *ngFor="let talhao of talhoes" [value]="talhao.id">{{ talhao.nome }}</option>
+          <label class="block text-sm font-medium text-gray-700 mb-2">Talhão <span class="text-xs text-gray-400">(opcional)</span></label>
+          <select [(ngModel)]="selectedSafra.talhaoId" name="talhaoId" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-green focus:border-transparent">
+            <option [ngValue]="null">{{ talhoes.length === 0 ? 'Nenhum talhão cadastrado — vincule depois' : 'Sem talhão vinculado' }}</option>
+            <option *ngFor="let talhao of talhoes" [ngValue]="talhao.id">{{ talhao.nome }}</option>
           </select>
         </div>
       </div>
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
           <label class="block text-sm font-medium text-gray-700 mb-2">Cultura</label>
-          <input type="text" [(ngModel)]="selectedSafra.cultura" name="cultura" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-green focus:border-transparent" />
+          <input
+            type="text"
+            [(ngModel)]="selectedSafra.cultura"
+            name="cultura"
+            #cultura="ngModel"
+            (input)="onCulturaInput($event)"
+            [minlength]="CULTURA_MIN"
+            [maxlength]="CULTURA_MAX"
+            required
+            placeholder="Ex.: Soja, Milho, Café"
+            autocomplete="off"
+            class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary-green focus:border-transparent"
+            [ngClass]="cultura.touched && cultura.invalid ? 'border-red-400' : 'border-gray-300'"
+          />
+          <p class="text-xs text-red-600 mt-1" *ngIf="cultura.touched && cultura.errors?.['required']">Informe a cultura.</p>
+          <p class="text-xs text-red-600 mt-1" *ngIf="cultura.touched && cultura.errors?.['minlength']">Mínimo de {{ CULTURA_MIN }} caracteres.</p>
+          <p class="text-xs text-gray-400 mt-1" *ngIf="!cultura.errors">Apenas letras, espaço e hífen. Máx. {{ CULTURA_MAX }}.</p>
         </div>
         <div>
           <label class="block text-sm font-medium text-gray-700 mb-2">Status</label>
@@ -38,25 +70,89 @@
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
           <label class="block text-sm font-medium text-gray-700 mb-2">Data do Plantio</label>
-          <input type="date" [(ngModel)]="selectedSafra.dataPlantio" name="dataPlantio" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-green focus:border-transparent" />
+          <input
+            type="date"
+            [(ngModel)]="selectedSafra.dataPlantio"
+            name="dataPlantio"
+            #dataPlantio="ngModel"
+            required
+            class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary-green focus:border-transparent"
+            [ngClass]="dataPlantio.touched && dataPlantio.invalid ? 'border-red-400' : 'border-gray-300'"
+          />
+          <p class="text-xs text-red-600 mt-1" *ngIf="dataPlantio.touched && dataPlantio.errors?.['required']">Informe a data de plantio.</p>
         </div>
         <div>
           <label class="block text-sm font-medium text-gray-700 mb-2">Data Prevista de Colheita</label>
-          <input type="date" [(ngModel)]="selectedSafra.dataColheitaPrevista" name="dataColheitaPrevista" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-green focus:border-transparent" />
+          <input
+            type="date"
+            [(ngModel)]="selectedSafra.dataColheitaPrevista"
+            name="dataColheitaPrevista"
+            #dataColheitaPrevista="ngModel"
+            [min]="selectedSafra.dataPlantio || null"
+            required
+            class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary-green focus:border-transparent"
+            [ngClass]="(dataColheitaPrevista.touched && dataColheitaPrevista.invalid) || isColheitaPrevistaInvalid() ? 'border-red-400' : 'border-gray-300'"
+          />
+          <p class="text-xs text-red-600 mt-1" *ngIf="dataColheitaPrevista.touched && dataColheitaPrevista.errors?.['required']">Informe a data prevista.</p>
+          <p class="text-xs text-red-600 mt-1" *ngIf="isColheitaPrevistaInvalid()">A colheita prevista não pode ser antes do plantio.</p>
         </div>
       </div>
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
-          <label class="block text-sm font-medium text-gray-700 mb-2">Produção Estimada (toneladas)</label>
-          <input type="number" [(ngModel)]="selectedSafra.producaoEstimada" name="producaoEstimada" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-green focus:border-transparent" />
+          <label class="block text-sm font-medium text-gray-700 mb-2">Data Real de Colheita <span class="text-xs text-gray-400">(opcional)</span></label>
+          <input
+            type="date"
+            [(ngModel)]="selectedSafra.dataColheitaReal"
+            name="dataColheitaReal"
+            [min]="selectedSafra.dataPlantio || null"
+            class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary-green focus:border-transparent"
+            [ngClass]="isColheitaRealInvalid() ? 'border-red-400' : 'border-gray-300'"
+          />
+          <p class="text-xs text-red-600 mt-1" *ngIf="isColheitaRealInvalid()">A colheita real não pode ser antes do plantio.</p>
         </div>
         <div>
-          <label class="block text-sm font-medium text-gray-700 mb-2">Produção Real (toneladas)</label>
-          <input type="number" [(ngModel)]="selectedSafra.producaoReal" name="producaoReal" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-green focus:border-transparent" />
+          <label class="block text-sm font-medium text-gray-700 mb-2">Produção Estimada (toneladas)</label>
+          <input
+            type="number"
+            [(ngModel)]="selectedSafra.producaoEstimada"
+            name="producaoEstimada"
+            step="0.01"
+            min="0"
+            [max]="PRODUCAO_MAX"
+            inputmode="decimal"
+            (keydown)="blockInvalidNumberKeys($event)"
+            (input)="onProducaoInput('producaoEstimada', $event)"
+            placeholder="0,00"
+            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-green focus:border-transparent"
+          />
+          <p class="text-xs text-gray-400 mt-1">Apenas números. Até 2 casas decimais. Máx. {{ PRODUCAO_MAX | number:'1.2-2' }} t.</p>
+        </div>
+      </div>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">Produção Real (toneladas) <span class="text-xs text-gray-400">(opcional)</span></label>
+          <input
+            type="number"
+            [(ngModel)]="selectedSafra.producaoReal"
+            name="producaoReal"
+            step="0.01"
+            min="0"
+            [max]="PRODUCAO_MAX"
+            inputmode="decimal"
+            (keydown)="blockInvalidNumberKeys($event)"
+            (input)="onProducaoInput('producaoReal', $event)"
+            placeholder="0,00"
+            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-green focus:border-transparent"
+          />
+          <p class="text-xs text-gray-400 mt-1">Preencha quando a colheita for finalizada.</p>
         </div>
       </div>
       <div class="flex gap-3 pt-4">
-        <button type="submit" class="bg-primary-green hover:bg-green-700 text-white font-semibold py-2 px-6 rounded-lg transition">Salvar</button>
+        <button
+          type="submit"
+          [disabled]="!isFormValid()"
+          class="bg-primary-green hover:bg-green-700 text-white font-semibold py-2 px-6 rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed"
+        >Salvar</button>
         <button type="button" class="bg-gray-500 hover:bg-gray-600 text-white font-semibold py-2 px-6 rounded-lg transition" (click)="closeForm()">Cancelar</button>
       </div>
     </form>

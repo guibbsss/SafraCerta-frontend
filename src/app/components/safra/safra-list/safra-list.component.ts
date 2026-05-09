@@ -20,6 +20,17 @@ export class SafraListComponent implements OnInit {
   editMode = false;
   selectedSafra: Safra = this.getEmptySafra();
 
+  readonly NOME_MAX = 160;
+  readonly NOME_MIN = 3;
+  readonly CULTURA_MAX = 120;
+  readonly CULTURA_MIN = 2;
+  readonly PRODUCAO_MAX = 9_999_999.99;
+
+  // Letras (acentuadas), dígitos, espaços, / - . _
+  private readonly NOME_REGEX = /[^A-Za-zÀ-ÿ0-9\s\/\-\._]/g;
+  // Apenas letras (acentuadas), espaços e hífen
+  private readonly CULTURA_REGEX = /[^A-Za-zÀ-ÿ\s\-]/g;
+
   constructor(
     private safraService: SafraService,
     private talhaoService: TalhaoService
@@ -31,35 +42,16 @@ export class SafraListComponent implements OnInit {
   }
 
   loadSafras(): void {
-    this.loadMockData();
     this.safraService.getAll().subscribe({
       next: (data) => this.safras = data,
-      error: () => console.log('Backend indisponível. Mantendo dados mockados.')
+      error: (error) => console.error('Erro ao carregar safras:', error)
     });
   }
 
-  loadMockData(): void {
-    this.safras = [
-      { id: 1, nome: 'Safra Soja 2025/2026', talhaoId: 1, talhaoNome: 'Talhão A1', cultura: 'Soja', dataPlantio: new Date('2025-10-15'), dataColheitaPrevista: new Date('2026-03-20'), producaoEstimada: 150, producaoReal: 0, status: 'CRESCIMENTO' },
-      { id: 2, nome: 'Safra Milho Verão', talhaoId: 2, talhaoNome: 'Talhão A2', cultura: 'Milho', dataPlantio: new Date('2025-11-01'), dataColheitaPrevista: new Date('2026-04-15'), producaoEstimada: 200, producaoReal: 0, status: 'CRESCIMENTO' },
-      { id: 3, nome: 'Safra Algodão 2025', talhaoId: 3, talhaoNome: 'Talhão B1', cultura: 'Algodão', dataPlantio: new Date('2025-09-20'), dataColheitaPrevista: new Date('2026-05-10'), producaoEstimada: 180, producaoReal: 0, status: 'COLHEITA' },
-      { id: 4, nome: 'Safra Soja 2024/2025', talhaoId: 4, talhaoNome: 'Talhão B2', cultura: 'Soja', dataPlantio: new Date('2024-10-10'), dataColheitaPrevista: new Date('2025-03-15'), producaoEstimada: 165, producaoReal: 170, status: 'FINALIZADA' },
-      { id: 5, nome: 'Safra Café 2025', talhaoId: 5, talhaoNome: 'Talhão C1', cultura: 'Café', dataPlantio: new Date('2025-01-15'), dataColheitaPrevista: new Date('2025-12-30'), producaoEstimada: 90, producaoReal: 0, status: 'PLANTADA' }
-    ];
-  }
-
   loadTalhoes(): void {
-    this.talhoes = [
-      { id: 1, nome: 'Talhão A1', fazendaId: 1, fazendaNome: 'Fazenda Boa Vista', area: 50, cultura: 'Soja', status: 'EM_USO' },
-      { id: 2, nome: 'Talhão A2', fazendaId: 1, fazendaNome: 'Fazenda Boa Vista', area: 75, cultura: 'Milho', status: 'DISPONIVEL' },
-      { id: 3, nome: 'Talhão B1', fazendaId: 2, fazendaNome: 'Fazenda Santa Clara', area: 120, cultura: 'Algodão', status: 'EM_USO' },
-      { id: 4, nome: 'Talhão B2', fazendaId: 2, fazendaNome: 'Fazenda Santa Clara', area: 90, cultura: 'Soja', status: 'EM_USO' },
-      { id: 5, nome: 'Talhão C1', fazendaId: 3, fazendaNome: 'Fazenda São Paulo', area: 60, cultura: 'Café', status: 'MANUTENCAO' },
-      { id: 6, nome: 'Talhão D1', fazendaId: 4, fazendaNome: 'Fazenda Recanto Verde', area: 85, cultura: 'Feijão', status: 'DISPONIVEL' }
-    ];
     this.talhaoService.getAll().subscribe({
       next: (data) => this.talhoes = data,
-      error: () => console.log('Backend indisponível. Mantendo talhões mockados no dropdown.')
+      error: (error) => console.error('Erro ao carregar talhões:', error)
     });
   }
 
@@ -80,8 +72,23 @@ export class SafraListComponent implements OnInit {
   }
 
   saveSafra(): void {
+    if (!this.isFormValid()) {
+      return;
+    }
+    const talhaoIdRaw = this.selectedSafra.talhaoId;
+    const talhaoIdNumber = talhaoIdRaw ? Number(talhaoIdRaw) : null;
+    const payload: Safra = {
+      ...this.selectedSafra,
+      nome: (this.selectedSafra.nome ?? '').trim(),
+      cultura: (this.selectedSafra.cultura ?? '').trim(),
+      talhaoId: talhaoIdNumber && talhaoIdNumber > 0 ? talhaoIdNumber : null,
+      dataColheitaReal: this.selectedSafra.dataColheitaReal || undefined,
+      producaoEstimada: this.normalizeProducao(this.selectedSafra.producaoEstimada),
+      producaoReal: this.normalizeProducao(this.selectedSafra.producaoReal)
+    };
+
     if (this.editMode && this.selectedSafra.id) {
-      this.safraService.update(this.selectedSafra.id, this.selectedSafra).subscribe({
+      this.safraService.update(this.selectedSafra.id, payload).subscribe({
         next: () => {
           this.loadSafras();
           this.closeForm();
@@ -89,7 +96,7 @@ export class SafraListComponent implements OnInit {
         error: (error) => console.error('Erro ao atualizar safra:', error)
       });
     } else {
-      this.safraService.create(this.selectedSafra).subscribe({
+      this.safraService.create(payload).subscribe({
         next: () => {
           this.loadSafras();
           this.closeForm();
@@ -108,15 +115,110 @@ export class SafraListComponent implements OnInit {
     }
   }
 
+  // ---------- Máscaras / sanitização ----------
+
+  onNomeInput(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const cleaned = input.value
+      .replace(this.NOME_REGEX, '')
+      .replace(/\s{2,}/g, ' ')
+      .slice(0, this.NOME_MAX);
+    if (input.value !== cleaned) {
+      input.value = cleaned;
+    }
+    this.selectedSafra.nome = cleaned;
+  }
+
+  onCulturaInput(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const cleaned = input.value
+      .replace(this.CULTURA_REGEX, '')
+      .replace(/\s{2,}/g, ' ')
+      .slice(0, this.CULTURA_MAX);
+    if (input.value !== cleaned) {
+      input.value = cleaned;
+    }
+    this.selectedSafra.cultura = cleaned;
+  }
+
+  blockInvalidNumberKeys(event: KeyboardEvent): void {
+    const blocked = ['e', 'E', '+', '-'];
+    if (blocked.includes(event.key)) {
+      event.preventDefault();
+    }
+  }
+
+  onProducaoInput(field: 'producaoEstimada' | 'producaoReal', event: Event): void {
+    const input = event.target as HTMLInputElement;
+    if (input.value === '') {
+      this.selectedSafra[field] = undefined;
+      return;
+    }
+    let value = Number(input.value);
+    if (Number.isNaN(value) || value < 0) {
+      value = 0;
+    }
+    if (value > this.PRODUCAO_MAX) {
+      value = this.PRODUCAO_MAX;
+      input.value = String(this.PRODUCAO_MAX);
+    }
+    value = Math.round(value * 100) / 100;
+    this.selectedSafra[field] = value;
+  }
+
+  // ---------- Validação cross-field ----------
+
+  isFormValid(): boolean {
+    const s = this.selectedSafra;
+    const nome = (s.nome ?? '').trim();
+    const cultura = (s.cultura ?? '').trim();
+
+    if (nome.length < this.NOME_MIN) return false;
+    if (cultura.length < this.CULTURA_MIN) return false;
+    if (!s.status) return false;
+    if (!s.dataPlantio) return false;
+    if (!s.dataColheitaPrevista) return false;
+
+    if (s.dataColheitaPrevista < s.dataPlantio) return false;
+    if (s.dataColheitaReal && s.dataColheitaReal < s.dataPlantio) return false;
+
+    if (s.producaoEstimada !== undefined && s.producaoEstimada !== null) {
+      if (s.producaoEstimada < 0 || s.producaoEstimada > this.PRODUCAO_MAX) return false;
+    }
+    if (s.producaoReal !== undefined && s.producaoReal !== null) {
+      if (s.producaoReal < 0 || s.producaoReal > this.PRODUCAO_MAX) return false;
+    }
+    return true;
+  }
+
+  isColheitaPrevistaInvalid(): boolean {
+    const s = this.selectedSafra;
+    return !!(s.dataPlantio && s.dataColheitaPrevista && s.dataColheitaPrevista < s.dataPlantio);
+  }
+
+  isColheitaRealInvalid(): boolean {
+    const s = this.selectedSafra;
+    return !!(s.dataPlantio && s.dataColheitaReal && s.dataColheitaReal < s.dataPlantio);
+  }
+
+  private normalizeProducao(value: number | null | undefined): number | undefined {
+    if (value === null || value === undefined || Number.isNaN(value)) {
+      return undefined;
+    }
+    return Math.round(Number(value) * 100) / 100;
+  }
+
   private getEmptySafra(): Safra {
     return {
       nome: '',
-      talhaoId: 0,
+      talhaoId: null,
       cultura: '',
-      dataPlantio: new Date(),
-      dataColheitaPrevista: new Date(),
+      dataPlantio: '',
+      dataColheitaPrevista: '',
+      dataColheitaReal: '',
       status: 'PLANTADA',
-      producaoEstimada: 0
+      producaoEstimada: undefined,
+      producaoReal: undefined
     };
   }
 }
