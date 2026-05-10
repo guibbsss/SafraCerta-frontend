@@ -32,7 +32,9 @@ export class SafraService {
     return this.http.put<Safra>(`${this.apiUrl}/${id}`, safra);
   }
 
-  delete(id: number): Observable<void> {
-    return this.http.delete<void>(`${this.apiUrl}/${id}`);
+  delete(id: number, justificativa: string): Observable<void> {
+    return this.http.delete<void>(`${this.apiUrl}/${id}`, {
+      body: { justificativa }
+    });
   }
 }

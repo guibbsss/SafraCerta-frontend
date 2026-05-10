@@ -20,11 +20,18 @@ export class SafraListComponent implements OnInit {
   editMode = false;
   selectedSafra: Safra = this.getEmptySafra();
 
+  showDeleteModal = false;
+  safraParaExcluir: Safra | null = null;
+  justificativaExclusao = '';
+  excluindo = false;
+
   readonly NOME_MAX = 160;
   readonly NOME_MIN = 3;
   readonly CULTURA_MAX = 120;
   readonly CULTURA_MIN = 2;
   readonly PRODUCAO_MAX = 9_999_999.99;
+  readonly JUSTIFICATIVA_MIN = 5;
+  readonly JUSTIFICATIVA_MAX = 500;
 
   // Letras (acentuadas), dígitos, espaços, / - . _
   private readonly NOME_REGEX = /[^A-Za-zÀ-ÿ0-9\s\/\-\._]/g;
@@ -106,13 +113,45 @@ export class SafraListComponent implements OnInit {
     }
   }
 
-  deleteSafra(id: number): void {
-    if (confirm('Tem certeza que deseja excluir esta safra?')) {
-      this.safraService.delete(id).subscribe({
-        next: () => this.loadSafras(),
-        error: (error) => console.error('Erro ao excluir safra:', error)
-      });
+  openDeleteModal(safra: Safra): void {
+    this.safraParaExcluir = safra;
+    this.justificativaExclusao = '';
+    this.showDeleteModal = true;
+  }
+
+  cancelarExclusao(): void {
+    this.showDeleteModal = false;
+    this.safraParaExcluir = null;
+    this.justificativaExclusao = '';
+    this.excluindo = false;
+  }
+
+  confirmarExclusao(): void {
+    if (!this.isJustificativaValida() || !this.safraParaExcluir?.id || this.excluindo) {
+      return;
     }
+    const id = this.safraParaExcluir.id;
+    const justificativa = this.justificativaExclusao.trim();
+    this.excluindo = true;
+    this.safraService.delete(id, justificativa).subscribe({
+      next: () => {
+        this.cancelarExclusao();
+        this.loadSafras();
+      },
+      error: (error) => {
+        console.error('Erro ao excluir safra:', error);
+        this.excluindo = false;
+      }
+    });
+  }
+
+  isJustificativaValida(): boolean {
+    const j = (this.justificativaExclusao ?? '').trim();
+    return j.length >= this.JUSTIFICATIVA_MIN && j.length <= this.JUSTIFICATIVA_MAX;
+  }
+
+  justificativaLength(): number {
+    return (this.justificativaExclusao ?? '').length;
   }
 
   // ---------- Máscaras / sanitização ----------

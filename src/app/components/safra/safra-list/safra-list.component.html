@@ -191,7 +191,7 @@
             </td>
             <td class="px-6 py-4 text-sm">
               <button class="text-2xl hover:scale-110 transition mr-2" (click)="openForm(safra)" title="Editar">✏️</button>
-              <button class="text-2xl hover:scale-110 transition" (click)="deleteSafra(safra.id!)" title="Excluir">🗑️</button>
+              <button class="text-2xl hover:scale-110 transition" (click)="openDeleteModal(safra)" title="Excluir">🗑️</button>
             </td>
           </tr>
         </tbody>
@@ -202,5 +202,55 @@
         <p class="text-gray-500 text-lg">Nenhuma safra cadastrada ainda.</p>
       </div>
     </ng-template>
+  </div>
+
+  <div *ngIf="showDeleteModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4">
+    <div class="bg-white rounded-lg shadow-xl w-full max-w-lg p-6">
+      <h3 class="text-xl font-bold text-gray-800 mb-2">Excluir safra</h3>
+      <p class="text-sm text-gray-600 mb-4">
+        Você está prestes a excluir a safra
+        <span class="font-semibold">{{ safraParaExcluir?.nome }}</span>.
+        Essa ação fica registrada no histórico junto com sua justificativa.
+      </p>
+
+      <label class="block text-sm font-medium text-gray-700 mb-2">
+        Justificativa <span class="text-red-600">*</span>
+      </label>
+      <textarea
+        [(ngModel)]="justificativaExclusao"
+        name="justificativaExclusao"
+        rows="4"
+        [minlength]="JUSTIFICATIVA_MIN"
+        [maxlength]="JUSTIFICATIVA_MAX"
+        placeholder="Explique o motivo da exclusão (mín. {{ JUSTIFICATIVA_MIN }} caracteres)"
+        class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-red-400 focus:border-transparent"
+        [ngClass]="!isJustificativaValida() && justificativaLength() > 0 ? 'border-red-400' : 'border-gray-300'"
+      ></textarea>
+
+      <div class="flex justify-between mt-1 text-xs">
+        <span class="text-red-600" *ngIf="justificativaLength() > 0 && !isJustificativaValida()">
+          Mínimo de {{ JUSTIFICATIVA_MIN }} caracteres.
+        </span>
+        <span class="text-gray-400" *ngIf="!(justificativaLength() > 0 && !isJustificativaValida())">
+          Mínimo de {{ JUSTIFICATIVA_MIN }} caracteres.
+        </span>
+        <span class="text-gray-500">{{ justificativaLength() }}/{{ JUSTIFICATIVA_MAX }}</span>
+      </div>
+
+      <div class="flex gap-3 justify-end mt-6">
+        <button
+          type="button"
+          (click)="cancelarExclusao()"
+          [disabled]="excluindo"
+          class="bg-gray-500 hover:bg-gray-600 text-white font-semibold py-2 px-5 rounded-lg transition disabled:opacity-50"
+        >Cancelar</button>
+        <button
+          type="button"
+          (click)="confirmarExclusao()"
+          [disabled]="!isJustificativaValida() || excluindo"
+          class="bg-red-600 hover:bg-red-700 text-white font-semibold py-2 px-5 rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed"
+        >{{ excluindo ? 'Excluindo...' : 'Confirmar exclusão' }}</button>
+      </div>
+    </div>
   </div>
 </div>
