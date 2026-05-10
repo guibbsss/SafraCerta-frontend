@@ -68,16 +68,16 @@ export class DashboardComponent implements OnInit {
       }
     });
 
-    this.financeiroService.getAll().subscribe({
-      next: (data) => {
-        this.stats.totalReceitas = data.filter(f => f.tipo === 'RECEITA').reduce((sum, f) => sum + f.valor, 0);
-        this.stats.totalDespesas = data.filter(f => f.tipo === 'DESPESA').reduce((sum, f) => sum + f.valor, 0);
-        this.stats.saldo = this.stats.totalReceitas - this.stats.totalDespesas;
+    this.financeiroService.getResumo().subscribe({
+      next: (resumo) => {
+        this.stats.totalReceitas = resumo.totalReceitas;
+        this.stats.totalDespesas = resumo.totalDespesas;
+        this.stats.saldo = resumo.saldo;
       },
-      error: (error) => {
-        this.stats.totalReceitas = 970000;
-        this.stats.totalDespesas = 124650;
-        this.stats.saldo = this.stats.totalReceitas - this.stats.totalDespesas;
+      error: () => {
+        this.stats.totalReceitas = 0;
+        this.stats.totalDespesas = 0;
+        this.stats.saldo = 0;
       }
     });
   }
