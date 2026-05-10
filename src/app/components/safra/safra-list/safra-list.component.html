@@ -29,11 +29,21 @@
           <p class="text-xs text-gray-400 mt-1" *ngIf="!nome.errors">Letras, números, espaço, "/", "-", "." ou "_". Máx. {{ NOME_MAX }}.</p>
         </div>
         <div>
-          <label class="block text-sm font-medium text-gray-700 mb-2">Talhão <span class="text-xs text-gray-400">(opcional)</span></label>
-          <select [(ngModel)]="selectedSafra.talhaoId" name="talhaoId" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-green focus:border-transparent">
-            <option [ngValue]="null">{{ talhoes.length === 0 ? 'Nenhum talhão cadastrado — vincule depois' : 'Sem talhão vinculado' }}</option>
+          <label class="block text-sm font-medium text-gray-700 mb-2">Talhão</label>
+          <select
+            [(ngModel)]="selectedSafra.talhaoId"
+            name="talhaoId"
+            #talhaoId="ngModel"
+            required
+            [disabled]="talhoes.length === 0"
+            class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary-green focus:border-transparent disabled:bg-gray-100"
+            [ngClass]="talhaoId.touched && talhaoId.invalid ? 'border-red-400' : 'border-gray-300'"
+          >
+            <option [ngValue]="null" disabled>Selecione um talhão</option>
             <option *ngFor="let talhao of talhoes" [ngValue]="talhao.id">{{ talhao.nome }}</option>
           </select>
+          <p class="text-xs text-red-600 mt-1" *ngIf="talhoes.length === 0">Cadastre um talhão antes de criar a safra.</p>
+          <p class="text-xs text-red-600 mt-1" *ngIf="talhoes.length > 0 && talhaoId.touched && talhaoId.invalid">Selecione um talhão.</p>
         </div>
       </div>
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4">

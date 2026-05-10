@@ -82,13 +82,12 @@ export class SafraListComponent implements OnInit {
     if (!this.isFormValid()) {
       return;
     }
-    const talhaoIdRaw = this.selectedSafra.talhaoId;
-    const talhaoIdNumber = talhaoIdRaw ? Number(talhaoIdRaw) : null;
+    const talhaoIdNumber = Number(this.selectedSafra.talhaoId);
     const payload: Safra = {
       ...this.selectedSafra,
       nome: (this.selectedSafra.nome ?? '').trim(),
       cultura: (this.selectedSafra.cultura ?? '').trim(),
-      talhaoId: talhaoIdNumber && talhaoIdNumber > 0 ? talhaoIdNumber : null,
+      talhaoId: talhaoIdNumber,
       dataColheitaReal: this.selectedSafra.dataColheitaReal || undefined,
       producaoEstimada: this.normalizeProducao(this.selectedSafra.producaoEstimada),
       producaoReal: this.normalizeProducao(this.selectedSafra.producaoReal)
@@ -214,6 +213,7 @@ export class SafraListComponent implements OnInit {
 
     if (nome.length < this.NOME_MIN) return false;
     if (cultura.length < this.CULTURA_MIN) return false;
+    if (s.talhaoId === null || s.talhaoId === undefined || Number(s.talhaoId) <= 0) return false;
     if (!s.status) return false;
     if (!s.dataPlantio) return false;
     if (!s.dataColheitaPrevista) return false;
