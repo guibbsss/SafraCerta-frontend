@@ -14,7 +14,12 @@ export class MainLayoutComponent {
   sidebarOpen = true;
   currentUser$;
 
-  menuItems = [
+  menuItems: Array<{
+    path: string;
+    icon: string;
+    label: string;
+    linkActiveExact?: boolean;
+  }> = [
     { path: '/home', icon: '🏠', label: 'Início' },
     { path: '/dashboard', icon: '📊', label: 'Dashboard' },
     { path: '/fazendas', icon: '🏞️', label: 'Fazendas' },
@@ -22,7 +27,13 @@ export class MainLayoutComponent {
     { path: '/safras', icon: '🌾', label: 'Safras' },
     { path: '/atividades', icon: '📝', label: 'Atividades' },
     { path: '/estoque', icon: '📦', label: 'Estoque' },
-    { path: '/financeiro', icon: '💰', label: 'Financeiro' }
+    { path: '/financeiro', icon: '💰', label: 'Financeiro' },
+    {
+      path: '/administracao',
+      icon: '⚙️',
+      label: 'Administração',
+      linkActiveExact: false
+    }
   ];
 
   constructor(

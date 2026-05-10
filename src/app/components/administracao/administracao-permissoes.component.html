@@ -1,0 +1,63 @@
+<div class="max-w-5xl mx-auto">
+  <div class="flex items-center gap-4 mb-6">
+    <a routerLink="/administracao" class="text-primary-green hover:underline text-sm font-medium">← Voltar</a>
+    <h1 class="text-2xl font-bold text-gray-800">Gerenciar permissões</h1>
+  </div>
+  <p class="text-gray-600 mb-6">Selecione um perfil para expandir e ativar ou desativar permissões por categoria.</p>
+
+  <p *ngIf="loadingPerfis" class="text-gray-500">A carregar perfis…</p>
+  <p *ngIf="errorMessage" class="text-red-600 text-sm">{{ errorMessage }}</p>
+
+  <div class="space-y-3" *ngIf="!loadingPerfis && !errorMessage">
+    <div
+      *ngFor="let p of perfis"
+      class="rounded-xl border border-gray-200 bg-white shadow-sm overflow-hidden"
+    >
+      <button
+        type="button"
+        class="w-full flex items-center justify-between px-4 py-3 text-left hover:bg-gray-50 transition-colors"
+        (click)="togglePerfil(p.id)"
+      >
+        <span class="font-semibold text-gray-800">{{ p.nome }}</span>
+        <span class="text-gray-400">{{ isExpanded(p.id) ? '▼' : '▶' }}</span>
+      </button>
+
+      <div *ngIf="isExpanded(p.id)" class="border-t border-gray-100 px-4 py-4 bg-gray-50">
+        <p *ngIf="loadingMatrizId === p.id" class="text-sm text-gray-500">A carregar permissões…</p>
+
+        <ng-container *ngIf="loadingMatrizId !== p.id">
+          <p *ngIf="matriz(p.id).length === 0" class="text-sm text-amber-700 bg-amber-50 px-3 py-2 rounded-lg">
+            Não há categorias ou permissões registadas na base de dados. Adicione dados em
+            <code class="text-xs">permissao_categoria</code> e <code class="text-xs">permissao</code>.
+          </p>
+
+          <div *ngFor="let cat of matriz(p.id)" class="mb-6 last:mb-0">
+            <h3 class="text-sm font-bold text-gray-700 uppercase tracking-wide mb-3">{{ cat.categoriaNome }}</h3>
+            <ul class="space-y-2">
+              <li
+                *ngFor="let perm of cat.permissoes"
+                class="flex items-start justify-between gap-4 py-2 border-b border-gray-100 last:border-0"
+              >
+                <div class="min-w-0">
+                  <p class="font-medium text-gray-800">{{ perm.nome }}</p>
+                  <p *ngIf="perm.descricao" class="text-sm text-gray-500">{{ perm.descricao }}</p>
+                </div>
+                <label class="flex items-center gap-2 shrink-0 cursor-pointer select-none">
+                  <span class="text-xs text-gray-500 w-12 text-right">{{ perm.concedida ? 'Ativa' : 'Inativa' }}</span>
+                  <input
+                    type="checkbox"
+                    class="w-5 h-5 rounded border-gray-300 text-primary-green focus:ring-primary-green"
+                    [checked]="perm.concedida"
+                    (change)="onToggleChange(p.id, perm.id, $any($event.target).checked)"
+                  />
+                </label>
+              </li>
+            </ul>
+          </div>
+        </ng-container>
+      </div>
+    </div>
+
+    <p *ngIf="perfis.length === 0" class="text-gray-500 text-sm">Nenhum perfil encontrado.</p>
+  </div>
+</div>

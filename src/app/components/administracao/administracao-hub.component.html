@@ -1,0 +1,39 @@
+<div class="max-w-7xl mx-auto">
+  <h1 class="text-3xl font-bold text-gray-800 mb-2">Administração</h1>
+  <p class="text-gray-600 mb-8">Escolha uma área para gerir o sistema.</p>
+
+  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    <a
+      routerLink="/administracao/perfis"
+      class="flex gap-4 p-6 rounded-xl shadow-md hover:shadow-lg transition-shadow bg-sky-50 border border-sky-100 cursor-pointer no-underline text-inherit"
+    >
+      <span class="text-4xl shrink-0 leading-none" aria-hidden="true">👤</span>
+      <div class="min-w-0">
+        <h2 class="text-lg font-bold text-gray-800">Gerenciar Perfis</h2>
+        <p class="text-sm text-gray-600 mt-1">Gerir perfis de utilizadores do sistema.</p>
+      </div>
+    </a>
+
+    <a
+      routerLink="/administracao/solicitacoes"
+      class="flex gap-4 p-6 rounded-xl shadow-md hover:shadow-lg transition-shadow bg-amber-50 border border-amber-100 cursor-pointer no-underline text-inherit"
+    >
+      <span class="text-4xl shrink-0 leading-none" aria-hidden="true">📋</span>
+      <div class="min-w-0">
+        <h2 class="text-lg font-bold text-gray-800">Solicitação Entrada</h2>
+        <p class="text-sm text-gray-600 mt-1">Rever e aprovar pedidos de acesso à plataforma.</p>
+      </div>
+    </a>
+
+    <a
+      routerLink="/administracao/permissoes"
+      class="flex gap-4 p-6 rounded-xl shadow-md hover:shadow-lg transition-shadow bg-rose-50 border border-rose-100 cursor-pointer no-underline text-inherit"
+    >
+      <span class="text-4xl shrink-0 leading-none" aria-hidden="true">🛡️</span>
+      <div class="min-w-0">
+        <h2 class="text-lg font-bold text-gray-800">Gerenciar Permissões</h2>
+        <p class="text-sm text-gray-600 mt-1">Configurar permissões e níveis de acesso.</p>
+      </div>
+    </a>
+  </div>
+</div>
