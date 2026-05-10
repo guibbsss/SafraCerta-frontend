@@ -8,7 +8,7 @@ import { Atividade } from '../../models/atividade.model';
   providedIn: 'root'
 })
 export class AtividadeService {
-  private apiUrl = `${environment.apiUrl}/atividades`;
+  private apiUrl = `${environment.apiUrl}/atividades-agricolas`;
 
   constructor(private http: HttpClient) {}
 
@@ -16,12 +16,12 @@ export class AtividadeService {
     return this.http.get<Atividade[]>(this.apiUrl);
   }
 
-  getById(id: number): Observable<Atividade> {
-    return this.http.get<Atividade>(`${this.apiUrl}/${id}`);
+  getByTalhao(talhaoId: number): Observable<Atividade[]> {
+    return this.http.get<Atividade[]>(`${this.apiUrl}/talhao/${talhaoId}`);
   }
 
-  getBySafra(safraId: number): Observable<Atividade[]> {
-    return this.http.get<Atividade[]>(`${this.apiUrl}/safra/${safraId}`);
+  getById(id: number): Observable<Atividade> {
+    return this.http.get<Atividade>(`${this.apiUrl}/${id}`);
   }
 
   create(atividade: Atividade): Observable<Atividade> {

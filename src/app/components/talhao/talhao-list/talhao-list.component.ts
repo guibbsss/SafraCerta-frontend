@@ -20,6 +20,17 @@ export class TalhaoListComponent implements OnInit {
   showForm = false;
   editMode = false;
   selectedTalhao: Talhao = this.getEmptyTalhao();
+  carregando = false;
+  salvando = false;
+  erro = '';
+
+  readonly NOME_MAX = 200;
+  readonly CULTIVO_MAX = 120;
+  readonly AREA_MIN = 0;
+  readonly AREA_MAX = 9999999.9999;
+
+  private readonly nomeRegex = /[^A-Za-zÀ-ÖØ-öø-ÿ0-9 \-_/.]/g;
+  private readonly cultivoRegex = /[^A-Za-zÀ-ÖØ-öø-ÿ0-9 \-]/g;
 
   constructor(
     private talhaoService: TalhaoService,
@@ -33,30 +44,28 @@ export class TalhaoListComponent implements OnInit {
   }
 
   loadTalhoes(): void {
-    this.loadMockData();
+    this.carregando = true;
+    this.erro = '';
     this.talhaoService.getAll().subscribe({
-      next: (data) => this.talhoes = data,
-      error: () => console.log('Backend indisponível. Mantendo dados mockados.')
+      next: (data) => {
+        this.talhoes = data ?? [];
+        this.carregando = false;
+      },
+      error: (err) => {
+        console.error('Erro ao carregar talhões:', err);
+        this.erro = 'Não foi possível carregar os talhões.';
+        this.talhoes = [];
+        this.carregando = false;
+      }
     });
-  }
-
-  loadMockData(): void {
-    this.talhoes = [
-      { id: 1, nome: 'Talhão A1', fazendaId: 1, fazendaNome: 'Fazenda Boa Vista', area: 50, cultura: 'Soja', status: 'EM_USO' },
-      { id: 2, nome: 'Talhão A2', fazendaId: 1, fazendaNome: 'Fazenda Boa Vista', area: 75, cultura: 'Milho', status: 'DISPONIVEL' },
-      { id: 3, nome: 'Talhão B1', fazendaId: 2, fazendaNome: 'Fazenda Santa Clara', area: 120, cultura: 'Algodão', status: 'EM_USO' },
-      { id: 4, nome: 'Talhão B2', fazendaId: 2, fazendaNome: 'Fazenda Santa Clara', area: 90, cultura: 'Soja', status: 'EM_USO' },
-      { id: 5, nome: 'Talhão C1', fazendaId: 3, fazendaNome: 'Fazenda São Paulo', area: 60, cultura: 'Café', status: 'MANUTENCAO' },
-      { id: 6, nome: 'Talhão D1', fazendaId: 4, fazendaNome: 'Fazenda Recanto Verde', area: 85, cultura: 'Feijão', status: 'DISPONIVEL' }
-    ];
   }
 
   loadFazendas(): void {
     const usuarioId = this.authService.getCurrentUserId() ?? 1;
     this.fazendaService.getAllByUsuario(usuarioId).subscribe({
-      next: (data) => (this.fazendas = data),
-      error: () => {
-        console.log('Backend indisponível. Lista de fazendas vazia no dropdown.');
+      next: (data) => (this.fazendas = data ?? []),
+      error: (err) => {
+        console.error('Erro ao carregar fazendas:', err);
         this.fazendas = [];
       }
     });
@@ -65,7 +74,14 @@ export class TalhaoListComponent implements OnInit {
   openForm(talhao?: Talhao): void {
     if (talhao) {
       this.editMode = true;
-      this.selectedTalhao = { ...talhao };
+      this.selectedTalhao = {
+        id: talhao.id,
+        fazendaId: talhao.fazendaId ?? null,
+        fazendaNome: talhao.fazendaNome,
+        nome: talhao.nome ?? '',
+        areaHectares: talhao.areaHectares ?? null,
+        tipoCultivo: talhao.tipoCultivo ?? ''
+      };
     } else {
       this.editMode = false;
       this.selectedTalhao = this.getEmptyTalhao();
@@ -79,41 +95,121 @@ export class TalhaoListComponent implements OnInit {
   }
 
   saveTalhao(): void {
-    if (this.editMode && this.selectedTalhao.id) {
-      this.talhaoService.update(this.selectedTalhao.id, this.selectedTalhao).subscribe({
-        next: () => {
-          this.loadTalhoes();
-          this.closeForm();
-        },
-        error: (error) => console.error('Erro ao atualizar talhão:', error)
-      });
-    } else {
-      this.talhaoService.create(this.selectedTalhao).subscribe({
-        next: () => {
-          this.loadTalhoes();
-          this.closeForm();
-        },
-        error: (error) => console.error('Erro ao criar talhão:', error)
-      });
+    if (!this.isFormValid() || this.salvando) {
+      return;
     }
+    const payload: Talhao = {
+      fazendaId: this.selectedTalhao.fazendaId,
+      nome: (this.selectedTalhao.nome ?? '').trim(),
+      areaHectares: this.selectedTalhao.areaHectares,
+      tipoCultivo: (this.selectedTalhao.tipoCultivo ?? '').trim()
+    };
+
+    this.salvando = true;
+
+    const obs = this.editMode && this.selectedTalhao.id
+      ? this.talhaoService.update(this.selectedTalhao.id, payload)
+      : this.talhaoService.create(payload);
+
+    obs.subscribe({
+      next: () => {
+        this.salvando = false;
+        this.loadTalhoes();
+        this.closeForm();
+      },
+      error: (error) => {
+        this.salvando = false;
+        console.error('Erro ao salvar talhão:', error);
+        this.erro = 'Não foi possível salvar o talhão. Verifique os dados e tente novamente.';
+      }
+    });
   }
 
-  deleteTalhao(id: number): void {
-    if (confirm('Tem certeza que deseja excluir este talhão?')) {
-      this.talhaoService.delete(id).subscribe({
-        next: () => this.loadTalhoes(),
-        error: (error) => console.error('Erro ao excluir talhão:', error)
-      });
+  deleteTalhao(id?: number): void {
+    if (!id) return;
+    if (!confirm('Tem certeza que deseja excluir este talhão?')) return;
+    this.talhaoService.delete(id).subscribe({
+      next: () => this.loadTalhoes(),
+      error: (error) => {
+        console.error('Erro ao excluir talhão:', error);
+        this.erro = 'Não foi possível excluir o talhão.';
+      }
+    });
+  }
+
+  onNomeInput(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    let valor = input.value.replace(this.nomeRegex, '');
+    if (valor.length > this.NOME_MAX) {
+      valor = valor.slice(0, this.NOME_MAX);
     }
+    if (valor !== input.value) {
+      input.value = valor;
+    }
+    this.selectedTalhao.nome = valor;
+  }
+
+  onCultivoInput(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    let valor = input.value.replace(this.cultivoRegex, '');
+    if (valor.length > this.CULTIVO_MAX) {
+      valor = valor.slice(0, this.CULTIVO_MAX);
+    }
+    if (valor !== input.value) {
+      input.value = valor;
+    }
+    this.selectedTalhao.tipoCultivo = valor;
+  }
+
+  onAreaInput(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    let valor = input.value.replace(',', '.').replace(/[^0-9.]/g, '');
+    const partes = valor.split('.');
+    if (partes.length > 2) {
+      valor = partes[0] + '.' + partes.slice(1).join('');
+    }
+    if (valor !== input.value) {
+      input.value = valor;
+    }
+    this.selectedTalhao.areaHectares = valor === '' ? null : Number(valor);
+  }
+
+  isNomeValido(): boolean {
+    const v = (this.selectedTalhao.nome ?? '').trim();
+    return v.length > 0 && v.length <= this.NOME_MAX;
+  }
+
+  isFazendaValida(): boolean {
+    return this.selectedTalhao.fazendaId !== null && this.selectedTalhao.fazendaId !== undefined && Number(this.selectedTalhao.fazendaId) > 0;
+  }
+
+  isAreaValida(): boolean {
+    const v = this.selectedTalhao.areaHectares;
+    if (v === null || v === undefined || isNaN(Number(v))) return true;
+    return Number(v) >= this.AREA_MIN && Number(v) <= this.AREA_MAX;
+  }
+
+  isCultivoValido(): boolean {
+    const v = (this.selectedTalhao.tipoCultivo ?? '').trim();
+    return v.length <= this.CULTIVO_MAX;
+  }
+
+  isFormValid(): boolean {
+    return this.isNomeValido() && this.isFazendaValida() && this.isAreaValida() && this.isCultivoValido();
+  }
+
+  getFazendaNome(t: Talhao): string {
+    if (t.fazendaNome) return t.fazendaNome;
+    const f = this.fazendas.find((x) => x.id === t.fazendaId);
+    return f?.nome ?? 'N/A';
   }
 
   private getEmptyTalhao(): Talhao {
     return {
+      fazendaId: null,
       nome: '',
-      fazendaId: 0,
-      area: 0,
-      cultura: '',
-      status: 'DISPONIVEL'
+      areaHectares: null,
+      tipoCultivo: ''
     };
   }
 }

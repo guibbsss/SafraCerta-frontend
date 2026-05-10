@@ -1,9 +1,8 @@
 export interface Talhao {
   id?: number;
-  nome: string;
-  fazendaId: number;
+  fazendaId: number | null;
   fazendaNome?: string;
-  area: number;
-  cultura: string;
-  status: 'DISPONIVEL' | 'EM_USO' | 'MANUTENCAO';
+  nome: string;
+  areaHectares: number | null;
+  tipoCultivo: string;
 }
