@@ -40,11 +40,6 @@ export class EstoqueMovimentacaoComponent implements OnInit {
   formValorUnitario: number | null = null;
   formFornecedor = '';
 
-  showNovoInsumo = false;
-  novoNome = '';
-  novoCategoria = '';
-  novoUnidade = '';
-
   constructor(
     private route: ActivatedRoute,
     private movimentacaoService: MovimentacaoEstoqueService,
@@ -85,9 +80,80 @@ export class EstoqueMovimentacaoComponent implements OnInit {
       return;
     }
     this.insumoService.getByFazenda(this.formFazendaId).subscribe({
-      next: (data) => (this.insumosDaFazenda = data),
+      next: (data) => {
+        this.insumosDaFazenda = data;
+        if (this.tipo === 'SAIDA') {
+          this.clampQuantidadeSaida();
+        }
+      },
       error: () => (this.insumosDaFazenda = [])
     });
+  }
+
+  /** Saldo actual + quantidade desta saída (se estiver a editar a mesma linha/insumo). */
+  get saldoMaxParaSaida(): number | null {
+    if (this.tipo !== 'SAIDA' || !this.formInsumoId) {
+      return null;
+    }
+    const ins = this.insumosDaFazenda.find((i) => i.id === this.formInsumoId);
+    if (!ins) {
+      return null;
+    }
+    let max = Number(ins.quantidadeAtual);
+    if (this.editMode && this.editingId != null) {
+      const orig = this.movimentacoes.find((x) => x.id === this.editingId);
+      if (
+        orig &&
+        orig.tipoMovimentacao === 'SAIDA' &&
+        orig.insumoId === this.formInsumoId
+      ) {
+        max += Number(orig.quantidade);
+      }
+    }
+    return max;
+  }
+
+  onInsumoSelected(): void {
+    if (this.tipo === 'SAIDA') {
+      this.clampQuantidadeSaida();
+    }
+  }
+
+  onQuantidadeChange(): void {
+    if (this.tipo === 'SAIDA') {
+      this.clampQuantidadeSaida();
+    }
+  }
+
+  private clampQuantidadeSaida(): void {
+    if (this.tipo !== 'SAIDA' || this.formQuantidade == null) {
+      return;
+    }
+    const max = this.saldoMaxParaSaida;
+    if (max == null) {
+      return;
+    }
+    const q = Number(this.formQuantidade);
+    if (Number.isNaN(q)) {
+      return;
+    }
+    if (max <= 0) {
+      this.formQuantidade = 0;
+      return;
+    }
+    const minQ = 0.0001;
+    if (q < minQ) {
+      this.formQuantidade = minQ;
+      return;
+    }
+    if (q > max) {
+      this.formQuantidade = this.roundDecimals(max, 4);
+    }
+  }
+
+  private roundDecimals(n: number, places: number): number {
+    const f = 10 ** places;
+    return Math.round(n * f) / f;
   }
 
   openForm(m?: MovimentacaoEstoque): void {
@@ -114,7 +180,6 @@ export class EstoqueMovimentacaoComponent implements OnInit {
       this.formFornecedor = '';
       this.insumosDaFazenda = [];
     }
-    this.showNovoInsumo = false;
     this.showForm = true;
   }
 
@@ -127,6 +192,9 @@ export class EstoqueMovimentacaoComponent implements OnInit {
     if (!this.formFazendaId || !this.formInsumoId || this.formQuantidade == null) {
       alert('Preencha fazenda, insumo e quantidade.');
       return;
+    }
+    if (this.tipo === 'SAIDA') {
+      this.clampQuantidadeSaida();
     }
     const body: MovimentacaoEstoqueRequest = {
       fazendaId: this.formFazendaId,
@@ -162,32 +230,6 @@ export class EstoqueMovimentacaoComponent implements OnInit {
         error: (e) => console.error('Erro ao registar:', e)
       });
     }
-  }
-
-  criarInsumoRapido(): void {
-    if (!this.formFazendaId || !this.novoNome.trim() || !this.novoUnidade.trim()) {
-      alert('Informe fazenda, nome e unidade do novo insumo.');
-      return;
-    }
-    this.insumoService
-      .create({
-        fazendaId: this.formFazendaId,
-        nome: this.novoNome.trim(),
-        categoria: this.novoCategoria.trim() || null,
-        quantidadeAtual: 0,
-        unidadeMedida: this.novoUnidade.trim()
-      })
-      .subscribe({
-        next: (created) => {
-          this.novoNome = '';
-          this.novoCategoria = '';
-          this.novoUnidade = '';
-          this.showNovoInsumo = false;
-          this.onFazendaChange();
-          this.formInsumoId = created.id!;
-        },
-        error: (e) => console.error('Erro ao criar insumo:', e)
-      });
   }
 
   deleteMov(id: number): void {
