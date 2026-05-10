@@ -15,6 +15,7 @@ import { AdministracaoShellComponent } from './components/administracao/administ
 import { AdministracaoHubComponent } from './components/administracao/administracao-hub.component';
 import { AdministracaoPerfisComponent } from './components/administracao/administracao-perfis.component';
 import { AdministracaoPermissoesComponent } from './components/administracao/administracao-permissoes.component';
+import { AdministracaoSolicitacoesComponent } from './components/administracao/administracao-solicitacoes.component';
 
 export const routes: Routes = [
   { path: 'login', component: LoginComponent },
@@ -39,7 +40,8 @@ export const routes: Routes = [
         children: [
           { path: '', component: AdministracaoHubComponent },
           { path: 'perfis', component: AdministracaoPerfisComponent },
-          { path: 'permissoes', component: AdministracaoPermissoesComponent }
+          { path: 'permissoes', component: AdministracaoPermissoesComponent },
+          { path: 'solicitacoes', component: AdministracaoSolicitacoesComponent }
         ]
       }
     ]
