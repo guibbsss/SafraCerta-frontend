@@ -32,14 +32,16 @@
             </span>
           </td>
           <td class="px-4 py-3">
-            <button
-              *ngIf="row.status === 'SOLICITADO'"
-              type="button"
-              class="text-sm font-medium text-primary-green hover:underline"
-              (click)="abrirAprovar(row)"
-            >
-              Aprovar
-            </button>
+            <ng-container *ngIf="row.status === 'SOLICITADO'">
+              <button
+                *appSePermissao="P.EDITAR"
+                type="button"
+                class="text-sm font-medium text-primary-green hover:underline"
+                (click)="abrirAprovar(row)"
+              >
+                Aprovar
+              </button>
+            </ng-container>
             <span *ngIf="row.status === 'APROVADO'" class="text-gray-400 text-sm">—</span>
           </td>
         </tr>
@@ -86,6 +88,7 @@
         Cancelar
       </button>
       <button
+        *appSePermissao="P.EDITAR"
         type="button"
         class="px-4 py-2 rounded-lg bg-primary-green text-white font-medium disabled:opacity-50"
         (click)="confirmarAprovacao()"

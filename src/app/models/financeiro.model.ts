@@ -5,7 +5,7 @@ export type StatusTransacaoFinanceira =
   | 'ATRASADO'
   | 'CANCELADO';
 
-export interface Financeiro {
+export interface TransacaoFinanceira {
   id?: number;
   fazendaId: number | null;
   fazendaNome?: string;

@@ -13,15 +13,18 @@ import {
 } from '../../../models/movimentacao-estoque.model';
 import { Insumo } from '../../../models/insumo.model';
 import { Fazenda } from '../../../models/fazenda.model';
+import { SePermissaoDirective } from '../../../directives/se-permissao.directive';
+import { P } from '../../../constants/permissoes';
 
 @Component({
   selector: 'app-estoque-movimentacao',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink],
+  imports: [CommonModule, FormsModule, RouterLink, SePermissaoDirective],
   templateUrl: './estoque-movimentacao.component.html',
   styleUrls: ['./estoque-movimentacao.component.css']
 })
 export class EstoqueMovimentacaoComponent implements OnInit {
+  readonly P = P;
   tipo!: TipoMovimentacaoEstoque;
   pageTitle = '';
   movimentacoes: MovimentacaoEstoque[] = [];

@@ -4,14 +4,17 @@ import { RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { PerfilAdminService } from '../../services/administracao/perfil-admin.service';
 import { MatrizCategoria, PerfilResposta } from '../../models/perfil-admin.model';
+import { SePermissaoDirective } from '../../directives/se-permissao.directive';
+import { P } from '../../constants/permissoes';
 
 @Component({
   selector: 'app-administracao-permissoes',
   standalone: true,
-  imports: [CommonModule, RouterLink, FormsModule],
+  imports: [CommonModule, RouterLink, FormsModule, SePermissaoDirective],
   templateUrl: './administracao-permissoes.component.html'
 })
 export class AdministracaoPermissoesComponent implements OnInit {
+  readonly P = P;
   perfis: PerfilResposta[] = [];
   expandedPerfilId: number | null = null;
   matrizPorPerfil = new Map<number, MatrizCategoria[]>();

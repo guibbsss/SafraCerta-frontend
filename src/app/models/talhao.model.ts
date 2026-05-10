@@ -1,4 +1,4 @@
-export interface Talhao {
+export interface TalhaoModel {
   id?: number;
   fazendaId: number | null;
   fazendaNome?: string;

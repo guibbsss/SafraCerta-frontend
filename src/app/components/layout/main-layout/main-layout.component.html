@@ -7,7 +7,7 @@
 
     <nav class="flex-1 py-4">
       <a
-        *ngFor="let item of menuItems"
+        *ngFor="let item of visibleMenuItems"
         [routerLink]="item.path"
         routerLinkActive="bg-green-700"
         [routerLinkActiveOptions]="

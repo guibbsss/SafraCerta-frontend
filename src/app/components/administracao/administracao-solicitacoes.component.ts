@@ -8,14 +8,17 @@ import { AuthService } from '../../services/auth/auth.service';
 import { SolicitacaoEntradaLinha } from '../../models/solicitacao-entrada.model';
 import { PerfilResposta } from '../../models/perfil-admin.model';
 import { environment } from '../../../environments/environment';
+import { SePermissaoDirective } from '../../directives/se-permissao.directive';
+import { P } from '../../constants/permissoes';
 
 @Component({
   selector: 'app-administracao-solicitacoes',
   standalone: true,
-  imports: [CommonModule, RouterLink, FormsModule],
+  imports: [CommonModule, RouterLink, FormsModule, SePermissaoDirective],
   templateUrl: './administracao-solicitacoes.component.html'
 })
 export class AdministracaoSolicitacoesComponent implements OnInit {
+  readonly P = P;
   linhas: SolicitacaoEntradaLinha[] = [];
   perfisParaAprovacao: PerfilResposta[] = [];
   loading = true;

@@ -8,7 +8,7 @@ import { FazendaService } from '../../../services/fazenda/fazenda.service';
 import { SafraService } from '../../../services/safra/safra.service';
 import { AuthService } from '../../../services/auth/auth.service';
 import {
-  Financeiro,
+  TransacaoFinanceira,
   FinanceiroFiltro,
   FinanceiroResumo,
   StatusTransacaoFinanceira,
@@ -16,16 +16,19 @@ import {
 } from '../../../models/financeiro.model';
 import { Fazenda } from '../../../models/fazenda.model';
 import { Safra } from '../../../models/safra.model';
+import { SePermissaoDirective } from '../../../directives/se-permissao.directive';
+import { P } from '../../../constants/permissoes';
 
 @Component({
   selector: 'app-financeiro-list',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, SePermissaoDirective],
   templateUrl: './financeiro-list.component.html',
   styleUrls: ['./financeiro-list.component.css']
 })
 export class FinanceiroListComponent implements OnInit {
-  financeiros: Financeiro[] = [];
+  readonly P = P;
+  financeiros: TransacaoFinanceira[] = [];
   fazendas: Fazenda[] = [];
   safras: Safra[] = [];
 
@@ -33,10 +36,10 @@ export class FinanceiroListComponent implements OnInit {
 
   showForm = false;
   editMode = false;
-  selectedFinanceiro: Financeiro = this.getEmptyFinanceiro();
+  selectedFinanceiro: TransacaoFinanceira = this.getEmptyFinanceiro();
 
   showDeleteModal = false;
-  registroParaExcluir: Financeiro | null = null;
+  registroParaExcluir: TransacaoFinanceira | null = null;
   justificativaExclusao = '';
   excluindo = false;
 
@@ -167,7 +170,7 @@ export class FinanceiroListComponent implements OnInit {
 
   // ---------- Form ----------
 
-  openForm(financeiro?: Financeiro): void {
+  openForm(financeiro?: TransacaoFinanceira): void {
     if (financeiro) {
       this.editMode = true;
       this.selectedFinanceiro = {
@@ -206,7 +209,7 @@ export class FinanceiroListComponent implements OnInit {
     if (!this.isFormValid() || this.salvando) {
       return;
     }
-    const payload: Financeiro = {
+    const payload: TransacaoFinanceira = {
       ...this.selectedFinanceiro,
       descricao: (this.selectedFinanceiro.descricao ?? '').trim(),
       categoria: this.trimOrUndefined(this.selectedFinanceiro.categoria),
@@ -241,7 +244,7 @@ export class FinanceiroListComponent implements OnInit {
 
   // ---------- Exclusão ----------
 
-  openDeleteModal(financeiro: Financeiro): void {
+  openDeleteModal(financeiro: TransacaoFinanceira): void {
     this.registroParaExcluir = financeiro;
     this.justificativaExclusao = '';
     this.showDeleteModal = true;
@@ -408,13 +411,13 @@ export class FinanceiroListComponent implements OnInit {
 
   // ---------- Helpers ----------
 
-  getFazendaNome(f: Financeiro): string {
+  getFazendaNome(f: TransacaoFinanceira): string {
     if (f.fazendaNome) return f.fazendaNome;
     const found = this.fazendas.find((x) => x.id === f.fazendaId);
     return found?.nome ?? 'N/A';
   }
 
-  getSafraNome(f: Financeiro): string {
+  getSafraNome(f: TransacaoFinanceira): string {
     if (f.safraNome) return f.safraNome;
     if (!f.safraId) return '—';
     const found = this.safras.find((x) => x.id === f.safraId);
@@ -434,6 +437,17 @@ export class FinanceiroListComponent implements OnInit {
       default:
         return status;
     }
+  }
+
+  statusBadgeNgClass(
+    status: StatusTransacaoFinanceira
+  ): Record<string, boolean> {
+    return {
+      'bg-yellow-100 text-yellow-800': status === 'PENDENTE',
+      'bg-green-100 text-green-800': status === 'PAGO',
+      'bg-red-100 text-red-800': status === 'ATRASADO',
+      'bg-gray-200 text-gray-800': status === 'CANCELADO'
+    };
   }
 
   // ---------- Internals ----------
@@ -503,7 +517,7 @@ export class FinanceiroListComponent implements OnInit {
     return trimmed.length > 0 ? trimmed : undefined;
   }
 
-  private getEmptyFinanceiro(): Financeiro {
+  private getEmptyFinanceiro(): TransacaoFinanceira {
     const hoje = new Date().toISOString().slice(0, 10);
     return {
       fazendaId: null,

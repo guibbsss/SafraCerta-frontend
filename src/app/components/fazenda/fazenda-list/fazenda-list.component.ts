@@ -4,15 +4,18 @@ import { FormsModule } from '@angular/forms';
 import { FazendaService } from '../../../services/fazenda/fazenda.service';
 import { AuthService } from '../../../services/auth/auth.service';
 import { Fazenda } from '../../../models/fazenda.model';
+import { SePermissaoDirective } from '../../../directives/se-permissao.directive';
+import { P } from '../../../constants/permissoes';
 
 @Component({
   selector: 'app-fazenda-list',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, SePermissaoDirective],
   templateUrl: './fazenda-list.component.html',
   styleUrls: ['./fazenda-list.component.css']
 })
 export class FazendaListComponent implements OnInit {
+  readonly P = P;
   fazendas: Fazenda[] = [];
   showForm = false;
   editMode = false;

@@ -81,9 +81,16 @@
         />
       </div>
       <div class="flex gap-3 pt-4">
-        <button type="submit" class="bg-primary-green hover:bg-green-700 text-white font-semibold py-2 px-6 rounded-lg">
-          Salvar
-        </button>
+        <ng-container *ngIf="editMode">
+          <button *appSePermissao="P.EDITAR" type="submit" class="bg-primary-green hover:bg-green-700 text-white font-semibold py-2 px-6 rounded-lg">
+            Salvar
+          </button>
+        </ng-container>
+        <ng-container *ngIf="!editMode">
+          <button *appSePermissao="P.CRIAR" type="submit" class="bg-primary-green hover:bg-green-700 text-white font-semibold py-2 px-6 rounded-lg">
+            Salvar
+          </button>
+        </ng-container>
         <button type="button" class="bg-gray-500 hover:bg-gray-600 text-white font-semibold py-2 px-6 rounded-lg" (click)="closeForm()">
           Cancelar
         </button>
@@ -130,8 +137,8 @@
               }}
             </td>
             <td class="px-6 py-4 text-sm">
-              <button type="button" class="text-2xl mr-2 hover:scale-110 transition" (click)="openForm(row)" title="Editar">✏️</button>
-              <button type="button" class="text-2xl hover:scale-110 transition" (click)="deleteItem(row.id!)" title="Excluir">🗑️</button>
+              <button *appSePermissao="P.EDITAR" type="button" class="text-2xl mr-2 hover:scale-110 transition" (click)="openForm(row)" title="Editar">✏️</button>
+              <button *appSePermissao="P.EXCLUIR" type="button" class="text-2xl hover:scale-110 transition" (click)="deleteItem(row.id!)" title="Excluir">🗑️</button>
             </td>
           </tr>
         </tbody>

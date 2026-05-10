@@ -1,5 +1,7 @@
 import { Routes } from '@angular/router';
 import { authGuard } from './guards/auth.guard';
+import { permissaoGuard } from './guards/permissao.guard';
+import { P } from './constants/permissoes';
 import { LoginComponent } from './components/auth/login/login.component';
 import { RegisterComponent } from './components/auth/register/register.component';
 import { MainLayoutComponent } from './components/layout/main-layout/main-layout.component';
@@ -30,14 +32,41 @@ export const routes: Routes = [
     children: [
       { path: '', redirectTo: 'home', pathMatch: 'full' },
       { path: 'home', component: HomeComponent },
-      { path: 'dashboard', component: DashboardComponent },
-      { path: 'fazendas', component: FazendaListComponent },
-      { path: 'talhoes', component: TalhaoListComponent },
-      { path: 'safras', component: SafraListComponent },
-      { path: 'atividades', component: AtividadeListComponent },
+      {
+        path: 'dashboard',
+        component: DashboardComponent,
+        canActivate: [permissaoGuard],
+        data: { permissaoId: P.VER_DASHBOARD }
+      },
+      {
+        path: 'fazendas',
+        component: FazendaListComponent,
+        canActivate: [permissaoGuard],
+        data: { permissaoId: P.VER_FAZENDA }
+      },
+      {
+        path: 'talhoes',
+        component: TalhaoListComponent,
+        canActivate: [permissaoGuard],
+        data: { permissaoId: P.VER_TALHAO }
+      },
+      {
+        path: 'safras',
+        component: SafraListComponent,
+        canActivate: [permissaoGuard],
+        data: { permissaoId: P.VER_SAFRA }
+      },
+      {
+        path: 'atividades',
+        component: AtividadeListComponent,
+        canActivate: [permissaoGuard],
+        data: { permissaoId: P.VER_ATIVIDADES }
+      },
       {
         path: 'estoque',
         component: EstoqueShellComponent,
+        canActivate: [permissaoGuard],
+        data: { permissaoId: P.VER_ESTOQUE },
         children: [
           { path: '', component: EstoqueHubComponent },
           { path: 'atual', component: EstoqueAtualComponent },
@@ -53,10 +82,17 @@ export const routes: Routes = [
           }
         ]
       },
-      { path: 'financeiro', component: FinanceiroListComponent },
+      {
+        path: 'financeiro',
+        component: FinanceiroListComponent,
+        canActivate: [permissaoGuard],
+        data: { permissaoId: P.VER_FINANCEIRO }
+      },
       {
         path: 'administracao',
         component: AdministracaoShellComponent,
+        canActivate: [permissaoGuard],
+        data: { permissaoId: P.VER_ADMINISTRACAO },
         children: [
           { path: '', component: AdministracaoHubComponent },
           { path: 'perfis', component: AdministracaoPerfisComponent },

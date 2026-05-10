@@ -6,6 +6,7 @@
       <p class="text-gray-600 text-sm mt-1">Selecione a fazenda e o insumo para cada registo.</p>
     </div>
     <button
+      *appSePermissao="P.CRIAR"
       type="button"
       class="bg-primary-green hover:bg-green-700 text-white font-semibold py-2 px-6 rounded-lg transition"
       (click)="openForm()"
@@ -43,49 +44,50 @@
             <option [ngValue]="0">Selecione o insumo</option>
             <option *ngFor="let i of insumosDaFazenda" [ngValue]="i.id">{{ i.nome }}</option>
           </select>
-          <button
-            type="button"
-            class="mt-2 text-sm text-primary-green hover:underline"
-            (click)="showNovoInsumo = !showNovoInsumo"
-            *ngIf="tipo === 'ENTRADA' && formFazendaId"
-          >
-            {{ showNovoInsumo ? 'Cancelar novo insumo' : '+ Cadastrar insumo nesta fazenda' }}
-          </button>
+          <ng-container *ngIf="tipo === 'ENTRADA' && formFazendaId">
+            <button
+              *appSePermissao="P.CRIAR"
+              type="button"
+              class="mt-2 text-sm text-primary-green hover:underline"
+              (click)="showNovoInsumo = !showNovoInsumo"
+            >
+              {{ showNovoInsumo ? 'Cancelar novo insumo' : '+ Cadastrar insumo nesta fazenda' }}
+            </button>
+          </ng-container>
         </div>
       </div>
 
-      <div
-        class="border rounded-lg p-4 bg-gray-50 space-y-3"
-        *ngIf="tipo === 'ENTRADA' && showNovoInsumo && formFazendaId"
-      >
-        <p class="text-sm font-medium text-gray-700">Novo insumo (saldo inicial 0)</p>
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
-          <input
-            type="text"
-            [(ngModel)]="novoNome"
-            name="novoNome"
-            placeholder="Nome"
-            class="px-3 py-2 border rounded-lg"
-          />
-          <input
-            type="text"
-            [(ngModel)]="novoCategoria"
-            name="novoCategoria"
-            placeholder="Categoria"
-            class="px-3 py-2 border rounded-lg"
-          />
-          <input
-            type="text"
-            [(ngModel)]="novoUnidade"
-            name="novoUnidade"
-            placeholder="Unidade (kg, L)"
-            class="px-3 py-2 border rounded-lg"
-          />
+      <ng-container *ngIf="tipo === 'ENTRADA' && showNovoInsumo && formFazendaId">
+        <div class="border rounded-lg p-4 bg-gray-50 space-y-3" *appSePermissao="P.CRIAR">
+          <p class="text-sm font-medium text-gray-700">Novo insumo (saldo inicial 0)</p>
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+            <input
+              type="text"
+              [(ngModel)]="novoNome"
+              name="novoNome"
+              placeholder="Nome"
+              class="px-3 py-2 border rounded-lg"
+            />
+            <input
+              type="text"
+              [(ngModel)]="novoCategoria"
+              name="novoCategoria"
+              placeholder="Categoria"
+              class="px-3 py-2 border rounded-lg"
+            />
+            <input
+              type="text"
+              [(ngModel)]="novoUnidade"
+              name="novoUnidade"
+              placeholder="Unidade (kg, L)"
+              class="px-3 py-2 border rounded-lg"
+            />
+          </div>
+          <button type="button" class="text-sm bg-primary-green text-white px-4 py-2 rounded-lg" (click)="criarInsumoRapido()">
+            Criar insumo
+          </button>
         </div>
-        <button type="button" class="text-sm bg-primary-green text-white px-4 py-2 rounded-lg" (click)="criarInsumoRapido()">
-          Criar insumo
-        </button>
-      </div>
+      </ng-container>
 
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
@@ -150,9 +152,16 @@
       </div>
 
       <div class="flex gap-3 pt-4">
-        <button type="submit" class="bg-primary-green hover:bg-green-700 text-white font-semibold py-2 px-6 rounded-lg">
-          Salvar
-        </button>
+        <ng-container *ngIf="editMode">
+          <button *appSePermissao="P.EDITAR" type="submit" class="bg-primary-green hover:bg-green-700 text-white font-semibold py-2 px-6 rounded-lg">
+            Salvar
+          </button>
+        </ng-container>
+        <ng-container *ngIf="!editMode">
+          <button *appSePermissao="P.CRIAR" type="submit" class="bg-primary-green hover:bg-green-700 text-white font-semibold py-2 px-6 rounded-lg">
+            Salvar
+          </button>
+        </ng-container>
         <button type="button" class="bg-gray-500 hover:bg-gray-600 text-white font-semibold py-2 px-6 rounded-lg" (click)="closeForm()">
           Cancelar
         </button>
@@ -197,8 +206,8 @@
             <td class="px-6 py-4 text-sm" *ngIf="tipo === 'ENTRADA'">{{ m.fornecedor || '—' }}</td>
             <td class="px-6 py-4 text-sm max-w-xs truncate" [title]="m.observacao || ''">{{ m.observacao || '—' }}</td>
             <td class="px-6 py-4 text-sm whitespace-nowrap">
-              <button type="button" class="text-2xl mr-2 hover:scale-110 transition" (click)="openForm(m)" title="Editar">✏️</button>
-              <button type="button" class="text-2xl hover:scale-110 transition" (click)="deleteMov(m.id!)" title="Excluir">🗑️</button>
+              <button *appSePermissao="P.EDITAR" type="button" class="text-2xl mr-2 hover:scale-110 transition" (click)="openForm(m)" title="Editar">✏️</button>
+              <button *appSePermissao="P.EXCLUIR" type="button" class="text-2xl hover:scale-110 transition" (click)="deleteMov(m.id!)" title="Excluir">🗑️</button>
             </td>
           </tr>
         </tbody>

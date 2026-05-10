@@ -22,8 +22,29 @@ export class AuthService {
   constructor(private http: HttpClient) {
     const storedUser = localStorage.getItem('currentUser');
     if (storedUser) {
-      this.currentUserSubject.next(JSON.parse(storedUser));
+      try {
+        const u = JSON.parse(storedUser) as User;
+        if (!Array.isArray(u.permissaoIds)) {
+          u.permissaoIds = [];
+        }
+        this.currentUserSubject.next(u);
+      } catch {
+        localStorage.removeItem('currentUser');
+      }
     }
+    if (localStorage.getItem('token')) {
+      this.refreshCurrentUser().subscribe({ error: () => {} });
+    }
+  }
+
+  /** Atualiza utilizador e permissões (GET /auth/me). Útil após login antigo em cache ou mudança de perfil. */
+  refreshCurrentUser(): Observable<User> {
+    return this.http.get<User>(`${this.apiUrl}/me`).pipe(
+      tap((user) => {
+        localStorage.setItem('currentUser', JSON.stringify(user));
+        this.currentUserSubject.next(user);
+      })
+    );
   }
 
   login(credentials: LoginRequest): Observable<LoginResponse> {

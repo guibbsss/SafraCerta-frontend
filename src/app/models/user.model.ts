@@ -5,6 +5,8 @@ export interface User {
   nome: string;
   token?: string;
   ativo?: boolean;
+  perfilId?: number;
+  permissaoIds?: number[];
 }
 
 export interface LoginRequest {

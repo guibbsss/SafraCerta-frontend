@@ -4,7 +4,9 @@ import { FormsModule } from '@angular/forms';
 import { AtividadeService } from '../../../services/atividade/atividade.service';
 import { TalhaoService } from '../../../services/talhao/talhao.service';
 import { Atividade } from '../../../models/atividade.model';
-import { Talhao } from '../../../models/talhao.model';
+import { TalhaoModel } from '../../../models/talhao.model';
+import { SePermissaoDirective } from '../../../directives/se-permissao.directive';
+import { P } from '../../../constants/permissoes';
 
 /**
  * Mesma forma de {@link Atividade}; declarado aqui para o strictTemplates não falhar no HTML.
@@ -22,13 +24,14 @@ interface AtividadeView {
 @Component({
   selector: 'app-atividade-list',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, SePermissaoDirective],
   templateUrl: './atividade-list.component.html',
   styleUrls: ['./atividade-list.component.css']
 })
 export class AtividadeListComponent implements OnInit {
+  readonly P = P;
   atividades: AtividadeView[] = [];
-  talhoes: Talhao[] = [];
+  talhoes: TalhaoModel[] = [];
   showForm = false;
   editMode = false;
   selectedAtividade: AtividadeView = this.getEmptyAtividade();

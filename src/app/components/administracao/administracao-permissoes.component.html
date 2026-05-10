@@ -45,6 +45,7 @@
                 <label class="flex items-center gap-2 shrink-0 cursor-pointer select-none">
                   <span class="text-xs text-gray-500 w-12 text-right">{{ perm.concedida ? 'Ativa' : 'Inativa' }}</span>
                   <input
+                    *appSePermissao="P.EDITAR"
                     type="checkbox"
                     class="w-5 h-5 rounded border-gray-300 text-primary-green focus:ring-primary-green"
                     [checked]="perm.concedida"

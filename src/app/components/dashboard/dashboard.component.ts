@@ -15,7 +15,7 @@ import { Atividade } from '../../models/atividade.model';
 import { Safra } from '../../models/safra.model';
 import { Insumo } from '../../models/insumo.model';
 import { Fazenda } from '../../models/fazenda.model';
-import { Talhao } from '../../models/talhao.model';
+import { TalhaoModel } from '../../models/talhao.model';
 
 function isSafraEmAndamento(s: Safra): boolean {
   return s.status !== 'FINALIZADA';
@@ -95,7 +95,7 @@ export class DashboardComponent implements OnInit {
       safras: this.safraService.getAll().pipe(catchError(() => of([] as Safra[]))),
       insumos: this.insumoService.getAll().pipe(catchError(() => of([] as Insumo[]))),
       resumo: this.financeiroService.getResumo().pipe(catchError(() => of(RESUMO_ZERADO))),
-      talhoes: this.talhaoService.getAll().pipe(catchError(() => of([] as Talhao[]))),
+      talhoes: this.talhaoService.getAll().pipe(catchError(() => of([] as TalhaoModel[]))),
       atividades: this.atividadeService.getAll().pipe(catchError(() => of([] as Atividade[])))
     })
       .pipe(finalize(() => (this.loading = false)))

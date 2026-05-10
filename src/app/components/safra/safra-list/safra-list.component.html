@@ -8,7 +8,7 @@
   </div>
   <div class="flex justify-between items-center bg-white rounded-lg shadow p-6">
     <h1 class="text-3xl font-bold text-primary-green">🌾 Gestão de Safras</h1>
-    <button class="bg-primary-green hover:bg-green-700 text-white font-semibold py-2 px-6 rounded-lg transition" (click)="openForm()">+ Nova Safra</button>
+    <button *appSePermissao="P.CRIAR" class="bg-primary-green hover:bg-green-700 text-white font-semibold py-2 px-6 rounded-lg transition" (click)="openForm()">+ Nova Safra</button>
   </div>
 
   <div class="bg-white rounded-lg shadow-lg p-6" *ngIf="showForm">
@@ -207,27 +207,61 @@
             />
           </div>
           <div class="md:col-span-3 flex gap-2">
-            <button
-              type="button"
-              (click)="removeConsumoLinha(i)"
-              class="text-sm text-red-600 hover:underline py-2"
-            >Remover</button>
+            <ng-container *ngIf="editMode">
+              <button
+                *appSePermissao="P.EDITAR"
+                type="button"
+                (click)="removeConsumoLinha(i)"
+                class="text-sm text-red-600 hover:underline py-2"
+              >Remover</button>
+            </ng-container>
+            <ng-container *ngIf="!editMode">
+              <button
+                *appSePermissao="P.CRIAR"
+                type="button"
+                (click)="removeConsumoLinha(i)"
+                class="text-sm text-red-600 hover:underline py-2"
+              >Remover</button>
+            </ng-container>
           </div>
         </div>
-        <button
-          type="button"
-          (click)="addConsumoLinha()"
-          [disabled]="!selectedSafra.talhaoId || insumosPorFazenda.length === 0"
-          class="text-sm font-medium text-primary-green hover:underline disabled:opacity-50 disabled:cursor-not-allowed"
-        >+ Adicionar produto</button>
+        <ng-container *ngIf="editMode">
+          <button
+            *appSePermissao="P.EDITAR"
+            type="button"
+            (click)="addConsumoLinha()"
+            [disabled]="!selectedSafra.talhaoId || insumosPorFazenda.length === 0"
+            class="text-sm font-medium text-primary-green hover:underline disabled:opacity-50 disabled:cursor-not-allowed"
+          >+ Adicionar produto</button>
+        </ng-container>
+        <ng-container *ngIf="!editMode">
+          <button
+            *appSePermissao="P.CRIAR"
+            type="button"
+            (click)="addConsumoLinha()"
+            [disabled]="!selectedSafra.talhaoId || insumosPorFazenda.length === 0"
+            class="text-sm font-medium text-primary-green hover:underline disabled:opacity-50 disabled:cursor-not-allowed"
+          >+ Adicionar produto</button>
+        </ng-container>
       </div>
 
       <div class="flex gap-3 pt-4">
-        <button
-          type="submit"
-          [disabled]="!isFormValid()"
-          class="bg-primary-green hover:bg-green-700 text-white font-semibold py-2 px-6 rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed"
-        >Salvar</button>
+        <ng-container *ngIf="editMode">
+          <button
+            *appSePermissao="P.EDITAR"
+            type="submit"
+            [disabled]="!isFormValid()"
+            class="bg-primary-green hover:bg-green-700 text-white font-semibold py-2 px-6 rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed"
+          >Salvar</button>
+        </ng-container>
+        <ng-container *ngIf="!editMode">
+          <button
+            *appSePermissao="P.CRIAR"
+            type="submit"
+            [disabled]="!isFormValid()"
+            class="bg-primary-green hover:bg-green-700 text-white font-semibold py-2 px-6 rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed"
+          >Salvar</button>
+        </ng-container>
         <button type="button" class="bg-gray-500 hover:bg-gray-600 text-white font-semibold py-2 px-6 rounded-lg transition" (click)="closeForm()">Cancelar</button>
       </div>
     </form>
@@ -269,8 +303,8 @@
               {{ consumoCount(safra) }}
             </td>
             <td class="px-6 py-4 text-sm">
-              <button class="text-2xl hover:scale-110 transition mr-2" (click)="openForm(safra)" title="Editar">✏️</button>
-              <button class="text-2xl hover:scale-110 transition" (click)="openDeleteModal(safra)" title="Excluir">🗑️</button>
+              <button *appSePermissao="P.EDITAR" class="text-2xl hover:scale-110 transition mr-2" (click)="openForm(safra)" title="Editar">✏️</button>
+              <button *appSePermissao="P.EXCLUIR" class="text-2xl hover:scale-110 transition" (click)="openDeleteModal(safra)" title="Excluir">🗑️</button>
             </td>
           </tr>
         </tbody>
@@ -324,6 +358,7 @@
           class="bg-gray-500 hover:bg-gray-600 text-white font-semibold py-2 px-5 rounded-lg transition disabled:opacity-50"
         >Cancelar</button>
         <button
+          *appSePermissao="P.EXCLUIR"
           type="button"
           (click)="confirmarExclusao()"
           [disabled]="!isJustificativaValida() || excluindo"

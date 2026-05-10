@@ -1,7 +1,11 @@
 <div class="space-y-6">
   <div class="flex justify-between items-center bg-white rounded-lg shadow p-6">
     <h1 class="text-3xl font-bold text-primary-green">🏞️ Gestão de Fazendas</h1>
-    <button class="bg-primary-green hover:bg-green-700 text-white font-semibold py-2 px-6 rounded-lg transition" (click)="openForm()">
+    <button
+      *appSePermissao="P.CRIAR"
+      class="bg-primary-green hover:bg-green-700 text-white font-semibold py-2 px-6 rounded-lg transition"
+      (click)="openForm()"
+    >
       + Nova Fazenda
     </button>
   </div>
@@ -29,9 +33,24 @@
         </div>
       </div>
       <div class="flex gap-3 pt-4">
-        <button type="submit" class="bg-primary-green hover:bg-green-700 text-white font-semibold py-2 px-6 rounded-lg transition">
-          Salvar
-        </button>
+        <ng-container *ngIf="editMode">
+          <button
+            *appSePermissao="P.EDITAR"
+            type="submit"
+            class="bg-primary-green hover:bg-green-700 text-white font-semibold py-2 px-6 rounded-lg transition"
+          >
+            Salvar
+          </button>
+        </ng-container>
+        <ng-container *ngIf="!editMode">
+          <button
+            *appSePermissao="P.CRIAR"
+            type="submit"
+            class="bg-primary-green hover:bg-green-700 text-white font-semibold py-2 px-6 rounded-lg transition"
+          >
+            Salvar
+          </button>
+        </ng-container>
         <button type="button" class="bg-gray-500 hover:bg-gray-600 text-white font-semibold py-2 px-6 rounded-lg transition" (click)="closeForm()">
           Cancelar
         </button>
@@ -58,8 +77,8 @@
             <td class="px-6 py-4 text-sm text-gray-900">{{ fazenda.areaTotal }}</td>
             <td class="px-6 py-4 text-sm font-mono text-gray-900">{{ fazenda.codigoAcesso || '—' }}</td>
             <td class="px-6 py-4 text-sm">
-              <button class="text-2xl hover:scale-110 transition mr-2" (click)="openForm(fazenda)" title="Editar">✏️</button>
-              <button class="text-2xl hover:scale-110 transition" (click)="deleteFazenda(fazenda.id!)" title="Excluir">🗑️</button>
+              <button *appSePermissao="P.EDITAR" class="text-2xl hover:scale-110 transition mr-2" (click)="openForm(fazenda)" title="Editar">✏️</button>
+              <button *appSePermissao="P.EXCLUIR" class="text-2xl hover:scale-110 transition" (click)="deleteFazenda(fazenda.id!)" title="Excluir">🗑️</button>
             </td>
           </tr>
         </tbody>

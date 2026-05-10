@@ -5,19 +5,22 @@ import { SafraService } from '../../../services/safra/safra.service';
 import { TalhaoService } from '../../../services/talhao/talhao.service';
 import { InsumoService } from '../../../services/insumo/insumo.service';
 import { Safra } from '../../../models/safra.model';
-import { Talhao } from '../../../models/talhao.model';
+import { TalhaoModel } from '../../../models/talhao.model';
 import { Insumo } from '../../../models/insumo.model';
+import { SePermissaoDirective } from '../../../directives/se-permissao.directive';
+import { P } from '../../../constants/permissoes';
 
 @Component({
   selector: 'app-safra-list',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, SePermissaoDirective],
   templateUrl: './safra-list.component.html',
   styleUrls: ['./safra-list.component.css']
 })
 export class SafraListComponent implements OnInit {
+  readonly P = P;
   safras: Safra[] = [];
-  talhoes: Talhao[] = [];
+  talhoes: TalhaoModel[] = [];
   /** Insumos da fazenda do talhão seleccionado (apenas criação). */
   insumosPorFazenda: Insumo[] = [];
   /** Linhas de formulário para consumo de estoque (apenas criação). */

@@ -3,7 +3,7 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import {
-  Financeiro,
+  TransacaoFinanceira,
   FinanceiroFiltro,
   FinanceiroResumo
 } from '../../models/financeiro.model';
@@ -16,8 +16,8 @@ export class FinanceiroService {
 
   constructor(private http: HttpClient) {}
 
-  list(filtro?: FinanceiroFiltro): Observable<Financeiro[]> {
-    return this.http.get<Financeiro[]>(this.apiUrl, {
+  list(filtro?: FinanceiroFiltro): Observable<TransacaoFinanceira[]> {
+    return this.http.get<TransacaoFinanceira[]>(this.apiUrl, {
       params: this.buildParams(filtro)
     });
   }
@@ -28,16 +28,16 @@ export class FinanceiroService {
     });
   }
 
-  getById(id: number): Observable<Financeiro> {
-    return this.http.get<Financeiro>(`${this.apiUrl}/${id}`);
+  getById(id: number): Observable<TransacaoFinanceira> {
+    return this.http.get<TransacaoFinanceira>(`${this.apiUrl}/${id}`);
   }
 
-  create(financeiro: Financeiro): Observable<Financeiro> {
-    return this.http.post<Financeiro>(this.apiUrl, financeiro);
+  create(financeiro: TransacaoFinanceira): Observable<TransacaoFinanceira> {
+    return this.http.post<TransacaoFinanceira>(this.apiUrl, financeiro);
   }
 
-  update(id: number, financeiro: Financeiro): Observable<Financeiro> {
-    return this.http.put<Financeiro>(`${this.apiUrl}/${id}`, financeiro);
+  update(id: number, financeiro: TransacaoFinanceira): Observable<TransacaoFinanceira> {
+    return this.http.put<TransacaoFinanceira>(`${this.apiUrl}/${id}`, financeiro);
   }
 
   delete(id: number, justificativa: string): Observable<void> {

@@ -7,15 +7,18 @@ import { FazendaService } from '../../../services/fazenda/fazenda.service';
 import { AuthService } from '../../../services/auth/auth.service';
 import { Insumo, InsumoRequest } from '../../../models/insumo.model';
 import { Fazenda } from '../../../models/fazenda.model';
+import { SePermissaoDirective } from '../../../directives/se-permissao.directive';
+import { P } from '../../../constants/permissoes';
 
 @Component({
   selector: 'app-estoque-atual',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink],
+  imports: [CommonModule, FormsModule, RouterLink, SePermissaoDirective],
   templateUrl: './estoque-atual.component.html',
   styleUrls: ['./estoque-atual.component.css']
 })
 export class EstoqueAtualComponent implements OnInit {
+  readonly P = P;
   insumos: Insumo[] = [];
   fazendas: Fazenda[] = [];
   showForm = false;

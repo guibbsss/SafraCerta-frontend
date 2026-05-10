@@ -4,22 +4,25 @@ import { FormsModule } from '@angular/forms';
 import { TalhaoService } from '../../../services/talhao/talhao.service';
 import { FazendaService } from '../../../services/fazenda/fazenda.service';
 import { AuthService } from '../../../services/auth/auth.service';
-import { Talhao } from '../../../models/talhao.model';
+import { TalhaoModel } from '../../../models/talhao.model';
 import { Fazenda } from '../../../models/fazenda.model';
+import { SePermissaoDirective } from '../../../directives/se-permissao.directive';
+import { P } from '../../../constants/permissoes';
 
 @Component({
   selector: 'app-talhao-list',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, SePermissaoDirective],
   templateUrl: './talhao-list.component.html',
   styleUrls: ['./talhao-list.component.css']
 })
 export class TalhaoListComponent implements OnInit {
-  talhoes: Talhao[] = [];
+  readonly P = P;
+  talhoes: TalhaoModel[] = [];
   fazendas: Fazenda[] = [];
   showForm = false;
   editMode = false;
-  selectedTalhao: Talhao = this.getEmptyTalhao();
+  selectedTalhao: TalhaoModel = this.getEmptyTalhao();
   carregando = false;
   salvando = false;
   erro = '';
@@ -71,7 +74,7 @@ export class TalhaoListComponent implements OnInit {
     });
   }
 
-  openForm(talhao?: Talhao): void {
+  openForm(talhao?: TalhaoModel): void {
     if (talhao) {
       this.editMode = true;
       this.selectedTalhao = {
@@ -98,7 +101,7 @@ export class TalhaoListComponent implements OnInit {
     if (!this.isFormValid() || this.salvando) {
       return;
     }
-    const payload: Talhao = {
+    const payload: TalhaoModel = {
       fazendaId: this.selectedTalhao.fazendaId,
       nome: (this.selectedTalhao.nome ?? '').trim(),
       areaHectares: this.selectedTalhao.areaHectares,
@@ -198,13 +201,13 @@ export class TalhaoListComponent implements OnInit {
     return this.isNomeValido() && this.isFazendaValida() && this.isAreaValida() && this.isCultivoValido();
   }
 
-  getFazendaNome(t: Talhao): string {
+  getFazendaNome(t: TalhaoModel): string {
     if (t.fazendaNome) return t.fazendaNome;
     const f = this.fazendas.find((x) => x.id === t.fazendaId);
     return f?.nome ?? 'N/A';
   }
 
-  private getEmptyTalhao(): Talhao {
+  private getEmptyTalhao(): TalhaoModel {
     return {
       fazendaId: null,
       nome: '',
