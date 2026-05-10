@@ -43,7 +43,48 @@
             <option [ngValue]="0">Selecione o insumo</option>
             <option *ngFor="let i of insumosDaFazenda" [ngValue]="i.id">{{ i.nome }}</option>
           </select>
+          <button
+            type="button"
+            class="mt-2 text-sm text-primary-green hover:underline"
+            (click)="showNovoInsumo = !showNovoInsumo"
+            *ngIf="tipo === 'ENTRADA' && formFazendaId"
+          >
+            {{ showNovoInsumo ? 'Cancelar novo insumo' : '+ Cadastrar insumo nesta fazenda' }}
+          </button>
         </div>
+      </div>
+
+      <div
+        class="border rounded-lg p-4 bg-gray-50 space-y-3"
+        *ngIf="tipo === 'ENTRADA' && showNovoInsumo && formFazendaId"
+      >
+        <p class="text-sm font-medium text-gray-700">Novo insumo (saldo inicial 0)</p>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+          <input
+            type="text"
+            [(ngModel)]="novoNome"
+            name="novoNome"
+            placeholder="Nome"
+            class="px-3 py-2 border rounded-lg"
+          />
+          <input
+            type="text"
+            [(ngModel)]="novoCategoria"
+            name="novoCategoria"
+            placeholder="Categoria"
+            class="px-3 py-2 border rounded-lg"
+          />
+          <input
+            type="text"
+            [(ngModel)]="novoUnidade"
+            name="novoUnidade"
+            placeholder="Unidade (kg, L)"
+            class="px-3 py-2 border rounded-lg"
+          />
+        </div>
+        <button type="button" class="text-sm bg-primary-green text-white px-4 py-2 rounded-lg" (click)="criarInsumoRapido()">
+          Criar insumo
+        </button>
       </div>
 
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4">

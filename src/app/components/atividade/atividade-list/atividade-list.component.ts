@@ -6,6 +6,19 @@ import { TalhaoService } from '../../../services/talhao/talhao.service';
 import { Atividade } from '../../../models/atividade.model';
 import { Talhao } from '../../../models/talhao.model';
 
+/**
+ * Mesma forma de {@link Atividade}; declarado aqui para o strictTemplates não falhar no HTML.
+ * Manter campos alinhados a `models/atividade.model.ts`.
+ */
+interface AtividadeView {
+  id?: number;
+  talhaoId: number | null;
+  talhaoNome?: string | null;
+  tipoOperacao: string;
+  dataAtividade: string;
+  descricao?: string | null;
+}
+
 @Component({
   selector: 'app-atividade-list',
   standalone: true,
@@ -14,11 +27,11 @@ import { Talhao } from '../../../models/talhao.model';
   styleUrls: ['./atividade-list.component.css']
 })
 export class AtividadeListComponent implements OnInit {
-  atividades: Atividade[] = [];
+  atividades: AtividadeView[] = [];
   talhoes: Talhao[] = [];
   showForm = false;
   editMode = false;
-  selectedAtividade: Atividade = this.getEmptyAtividade();
+  selectedAtividade: AtividadeView = this.getEmptyAtividade();
 
   /** Filtro da listagem: null = todos os talhões */
   filtroTalhaoId: number | null = null;
@@ -55,7 +68,9 @@ export class AtividadeListComponent implements OnInit {
         ? this.atividadeService.getByTalhao(this.filtroTalhaoId)
         : this.atividadeService.getAll();
     req.subscribe({
-      next: (data) => (this.atividades = data),
+      next: (data) => {
+        this.atividades = this.normalizeAtividadesResponse(data);
+      },
       error: (error) => console.error('Erro ao carregar atividades:', error)
     });
   }
@@ -71,6 +86,31 @@ export class AtividadeListComponent implements OnInit {
     this.loadAtividades();
   }
 
+  /** Nome do talhão na tabela: API pode omitir talhaoNome; usa lista carregada ou #id. */
+  talhaoLabel(a: AtividadeView): string {
+    const nomeApi = (a.talhaoNome ?? '').trim();
+    if (nomeApi) {
+      return nomeApi;
+    }
+    const tid = a.talhaoId;
+    if (tid == null) {
+      return '—';
+    }
+    const t = this.talhoes.find((x) => x.id === tid);
+    return t?.nome ?? `Talhão #${tid}`;
+  }
+
+  /** Garante array; alguns proxies devolvem objeto com chaves numéricas em vez de []. */
+  private normalizeAtividadesResponse(data: unknown): AtividadeView[] {
+    if (Array.isArray(data)) {
+      return data as AtividadeView[];
+    }
+    if (data != null && typeof data === 'object') {
+      return Object.values(data as Record<string, AtividadeView>);
+    }
+    return [];
+  }
+
   aplicarTipoSugerido(tipo: string): void {
     const cleaned = tipo
       .replace(this.TIPO_REGEX, '')
@@ -79,7 +119,7 @@ export class AtividadeListComponent implements OnInit {
     this.selectedAtividade.tipoOperacao = cleaned;
   }
 
-  openForm(atividade?: Atividade): void {
+  openForm(atividade?: AtividadeView): void {
     if (atividade) {
       this.editMode = true;
       this.selectedAtividade = {
@@ -109,7 +149,7 @@ export class AtividadeListComponent implements OnInit {
       tipoOperacao: (this.selectedAtividade.tipoOperacao ?? '').trim(),
       dataAtividade: this.selectedAtividade.dataAtividade,
       descricao: this.normalizeDescricao(this.selectedAtividade.descricao)
-    };
+    } satisfies AtividadeView;
 
     if (this.editMode && this.selectedAtividade.id) {
       this.atividadeService.update(this.selectedAtividade.id, payload).subscribe({
@@ -188,7 +228,7 @@ export class AtividadeListComponent implements OnInit {
     return v.length > 0 ? v : undefined;
   }
 
-  private getEmptyAtividade(): Atividade {
+  private getEmptyAtividade(): AtividadeView {
     return {
       talhaoId: null,
       tipoOperacao: '',

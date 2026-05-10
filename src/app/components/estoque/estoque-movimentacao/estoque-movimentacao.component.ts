@@ -40,6 +40,12 @@ export class EstoqueMovimentacaoComponent implements OnInit {
   formValorUnitario: number | null = null;
   formFornecedor = '';
 
+  /** Cadastro rápido de insumo na fazenda (apenas ecrã Entradas). */
+  showNovoInsumo = false;
+  novoNome = '';
+  novoCategoria = '';
+  novoUnidade = '';
+
   constructor(
     private route: ActivatedRoute,
     private movimentacaoService: MovimentacaoEstoqueService,
@@ -180,6 +186,7 @@ export class EstoqueMovimentacaoComponent implements OnInit {
       this.formFornecedor = '';
       this.insumosDaFazenda = [];
     }
+    this.showNovoInsumo = false;
     this.showForm = true;
   }
 
@@ -230,6 +237,32 @@ export class EstoqueMovimentacaoComponent implements OnInit {
         error: (e) => console.error('Erro ao registar:', e)
       });
     }
+  }
+
+  criarInsumoRapido(): void {
+    if (!this.formFazendaId || !this.novoNome.trim() || !this.novoUnidade.trim()) {
+      alert('Informe fazenda, nome e unidade do novo insumo.');
+      return;
+    }
+    this.insumoService
+      .create({
+        fazendaId: this.formFazendaId,
+        nome: this.novoNome.trim(),
+        categoria: this.novoCategoria.trim() || null,
+        quantidadeAtual: 0,
+        unidadeMedida: this.novoUnidade.trim()
+      })
+      .subscribe({
+        next: (created) => {
+          this.novoNome = '';
+          this.novoCategoria = '';
+          this.novoUnidade = '';
+          this.showNovoInsumo = false;
+          this.onFazendaChange();
+          this.formInsumoId = created.id!;
+        },
+        error: (e) => console.error('Erro ao criar insumo:', e)
+      });
   }
 
   deleteMov(id: number): void {

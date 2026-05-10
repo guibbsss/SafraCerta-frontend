@@ -1,89 +1,156 @@
 <div class="space-y-6">
   <div class="bg-white rounded-lg shadow p-6">
     <h1 class="text-3xl font-bold text-primary-green mb-2">📊 Dashboard</h1>
-    <p class="text-gray-600">Visão geral da sua fazenda</p>
+    <p class="text-gray-600">Visão geral da sua operação agrícola</p>
+
+    <nav *ngIf="!loading" class="flex flex-wrap gap-2 mt-4 pt-4 border-t border-gray-100" aria-label="Atalhos">
+      <a routerLink="/fazendas" class="text-sm px-3 py-1.5 rounded-lg bg-gray-100 text-gray-800 hover:bg-primary-green hover:text-white transition">Fazendas</a>
+      <a routerLink="/talhoes" class="text-sm px-3 py-1.5 rounded-lg bg-gray-100 text-gray-800 hover:bg-primary-green hover:text-white transition">Talhões</a>
+      <a routerLink="/safras" class="text-sm px-3 py-1.5 rounded-lg bg-gray-100 text-gray-800 hover:bg-primary-green hover:text-white transition">Safras</a>
+      <a routerLink="/atividades" class="text-sm px-3 py-1.5 rounded-lg bg-gray-100 text-gray-800 hover:bg-primary-green hover:text-white transition">Atividades</a>
+      <a routerLink="/estoque" class="text-sm px-3 py-1.5 rounded-lg bg-gray-100 text-gray-800 hover:bg-primary-green hover:text-white transition">Estoque</a>
+      <a routerLink="/financeiro" class="text-sm px-3 py-1.5 rounded-lg bg-gray-100 text-gray-800 hover:bg-primary-green hover:text-white transition">Financeiro</a>
+    </nav>
   </div>
 
-  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-    <div class="bg-gradient-to-br from-primary-green to-green-600 text-white rounded-lg shadow-lg p-6">
-      <div class="text-4xl mb-2">🏞️</div>
-      <h3 class="text-lg font-semibold mb-1">Fazendas</h3>
-      <p class="text-3xl font-bold mb-1">{{ stats.totalFazendas }}</p>
-      <span class="text-sm opacity-90">Propriedades cadastradas</span>
-    </div>
-
-    <div class="bg-gradient-to-br from-green-500 to-green-600 text-white rounded-lg shadow-lg p-6">
-      <div class="text-4xl mb-2">🌾</div>
-      <h3 class="text-lg font-semibold mb-1">Safras Ativas</h3>
-      <p class="text-3xl font-bold mb-1">{{ stats.safrasAtivas }}</p>
-      <span class="text-sm opacity-90">de {{ stats.totalSafras }} safras totais</span>
-    </div>
-
-    <div class="bg-gradient-to-br from-secondary-yellow to-yellow-600 text-white rounded-lg shadow-lg p-6">
-      <div class="text-4xl mb-2">📦</div>
-      <h3 class="text-lg font-semibold mb-1">Valor em Estoque</h3>
-      <p class="text-3xl font-bold mb-1">R$ {{ stats.totalEstoque | number: '1.2-2' }}</p>
-      <span class="text-sm opacity-90">Insumos e equipamentos</span>
-    </div>
-
-    <div class="bg-gradient-to-br from-accent-blue to-blue-600 text-white rounded-lg shadow-lg p-6">
-      <div class="text-4xl mb-2">💰</div>
-      <h3 class="text-lg font-semibold mb-1">Saldo</h3>
-      <p class="text-3xl font-bold mb-1" [class.text-red-300]="stats.saldo < 0">R$ {{ stats.saldo | number: '1.2-2' }}</p>
-      <span class="text-sm opacity-90">Receitas - Despesas</span>
-    </div>
+  <div *ngIf="loading" class="bg-white rounded-lg shadow p-12 text-center text-gray-500">
+    <p class="text-lg">Carregando dados…</p>
+    <p class="text-sm mt-2">Aguarde enquanto buscamos as informações.</p>
   </div>
 
-  <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-    <div class="bg-white rounded-lg shadow-lg p-6">
-      <h2 class="text-2xl font-bold text-primary-green mb-6">💵 Resumo Financeiro</h2>
-      <div class="space-y-6">
-        <div>
-          <div class="flex justify-between items-center mb-2">
-            <span class="text-gray-700 font-medium">Receitas</span>
-            <span class="text-green-600 font-bold">R$ {{ stats.totalReceitas | number: '1.2-2' }}</span>
+  <div *ngIf="loadError && !loading" class="bg-red-50 border border-red-200 rounded-lg p-4 text-red-800 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+    <span>Não foi possível carregar o dashboard. Tente novamente.</span>
+    <button type="button" class="bg-red-600 hover:bg-red-700 text-white text-sm font-semibold px-4 py-2 rounded-lg shrink-0" (click)="loadDashboardData()">Tentar de novo</button>
+  </div>
+
+  <ng-container *ngIf="!loading && !loadError">
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div class="bg-gradient-to-br from-primary-green to-green-600 text-white rounded-lg shadow-lg p-6">
+        <div class="text-4xl mb-2">🏞️</div>
+        <h3 class="text-lg font-semibold mb-1">Fazendas</h3>
+        <p class="text-3xl font-bold mb-1">{{ stats.totalFazendas }}</p>
+        <span class="text-sm opacity-90">Propriedades cadastradas</span>
+      </div>
+
+      <div class="bg-gradient-to-br from-green-500 to-green-600 text-white rounded-lg shadow-lg p-6">
+        <div class="text-4xl mb-2">🌾</div>
+        <h3 class="text-lg font-semibold mb-1">Safras em andamento</h3>
+        <p class="text-3xl font-bold mb-1">{{ stats.safrasAtivas }}</p>
+        <span class="text-sm opacity-90">de {{ stats.totalSafras }} safras totais (não finalizadas)</span>
+      </div>
+
+      <div class="bg-gradient-to-br from-secondary-yellow to-yellow-600 text-white rounded-lg shadow-lg p-6">
+        <div class="text-4xl mb-2">📦</div>
+        <h3 class="text-lg font-semibold mb-1">Valor em estoque</h3>
+        <p class="text-3xl font-bold mb-1">R$ {{ stats.totalEstoque | number: '1.2-2' }}</p>
+        <span class="text-sm opacity-90">{{ stats.itensEstoque }} {{ stats.itensEstoque === 1 ? 'item cadastrado' : 'itens cadastrados' }}</span>
+      </div>
+
+      <div class="bg-gradient-to-br from-accent-blue to-blue-600 text-white rounded-lg shadow-lg p-6">
+        <div class="text-4xl mb-2">💰</div>
+        <h3 class="text-lg font-semibold mb-1">Saldo</h3>
+        <p class="text-3xl font-bold mb-1" [class.text-red-300]="stats.saldo < 0">R$ {{ stats.saldo | number: '1.2-2' }}</p>
+        <span class="text-sm opacity-90">Receitas − despesas</span>
+      </div>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div class="bg-white rounded-lg shadow-lg p-6 border border-gray-100">
+        <h3 class="text-lg font-bold text-primary-green mb-1">Talhões</h3>
+        <p class="text-4xl font-bold text-gray-900">{{ stats.totalTalhoes }}</p>
+        <p class="text-sm text-gray-600 mt-1">Parcelas cadastradas no sistema</p>
+      </div>
+      <div class="bg-white rounded-lg shadow-lg p-6 border border-gray-100">
+        <h3 class="text-lg font-bold text-primary-green mb-1">Atividades registradas</h3>
+        <p class="text-4xl font-bold text-gray-900">{{ stats.totalAtividades }}</p>
+        <p class="text-sm text-gray-600 mt-1">Total de registros em atividades agrícolas</p>
+      </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div class="bg-white rounded-lg shadow-lg p-6">
+        <h2 class="text-2xl font-bold text-primary-green mb-6">💵 Resumo financeiro</h2>
+        <div class="flex flex-wrap gap-2 mb-4" *ngIf="stats.qtdPendentes > 0 || stats.qtdAtrasadas > 0">
+          <span *ngIf="stats.qtdPendentes > 0" class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-amber-100 text-amber-900 border border-amber-200">
+            Pendentes: {{ stats.qtdPendentes }}
+          </span>
+          <span *ngIf="stats.qtdAtrasadas > 0" class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-red-100 text-red-900 border border-red-200">
+            Atrasadas: {{ stats.qtdAtrasadas }}
+          </span>
+        </div>
+        <p class="text-xs text-gray-500 mb-4" *ngIf="stats.qtdLancamentosReceitas > 0 || stats.qtdLancamentosDespesas > 0">
+          {{ stats.qtdLancamentosReceitas }} lançamento(s) de receita · {{ stats.qtdLancamentosDespesas }} de despesa
+        </p>
+        <div class="space-y-6">
+          <div>
+            <div class="flex justify-between items-center mb-2">
+              <span class="text-gray-700 font-medium">Receitas</span>
+              <span class="text-green-600 font-bold">R$ {{ stats.totalReceitas | number: '1.2-2' }}</span>
+            </div>
+            <div class="w-full bg-gray-200 rounded-full h-4 overflow-hidden">
+              <div
+                class="bg-green-500 h-full rounded-full transition-all"
+                [style.width.%]="receitasBarPct()"
+              ></div>
+            </div>
           </div>
-          <div class="w-full bg-gray-200 rounded-full h-4 overflow-hidden">
-            <div class="bg-green-500 h-full rounded-full transition-all" [style.width]="stats.totalReceitas > 0 ? '100%' : '0%'"></div>
+          <div>
+            <div class="flex justify-between items-center mb-2">
+              <span class="text-gray-700 font-medium">Despesas</span>
+              <span class="text-red-600 font-bold">R$ {{ stats.totalDespesas | number: '1.2-2' }}</span>
+            </div>
+            <div class="w-full bg-gray-200 rounded-full h-4 overflow-hidden">
+              <div
+                class="bg-red-500 h-full rounded-full transition-all"
+                [style.width.%]="despesasBarPct()"
+              ></div>
+            </div>
           </div>
         </div>
-        <div>
-          <div class="flex justify-between items-center mb-2">
-            <span class="text-gray-700 font-medium">Despesas</span>
-            <span class="text-red-600 font-bold">R$ {{ stats.totalDespesas | number: '1.2-2' }}</span>
+      </div>
+
+      <div class="bg-white rounded-lg shadow-lg p-6">
+        <h2 class="text-2xl font-bold text-primary-green mb-6">📈 Indicadores</h2>
+        <div class="grid grid-cols-3 gap-4">
+          <div class="text-center p-4 bg-gray-50 rounded-lg">
+            <div class="text-3xl mb-2">🎯</div>
+            <p class="text-2xl font-bold text-gray-800">{{ stats.totalFazendas }}</p>
+            <p class="text-sm text-gray-600 mt-1">Propriedades</p>
           </div>
-          <div class="w-full bg-gray-200 rounded-full h-4 overflow-hidden">
-            <div class="bg-red-500 h-full rounded-full transition-all" [style.width]="stats.totalDespesas > 0 ? (stats.totalDespesas / stats.totalReceitas * 100) + '%' : '0%'"></div>
+          <div class="text-center p-4 bg-gray-50 rounded-lg">
+            <div class="text-3xl mb-2">🌱</div>
+            <p class="text-2xl font-bold text-gray-800">{{ stats.totalSafras }}</p>
+            <p class="text-sm text-gray-600 mt-1">Safras totais</p>
+          </div>
+          <div class="text-center p-4 bg-gray-50 rounded-lg">
+            <div class="text-3xl mb-2">✅</div>
+            <p class="text-2xl font-bold text-gray-800">{{ stats.safrasAtivas }}</p>
+            <p class="text-sm text-gray-600 mt-1">Em andamento</p>
           </div>
         </div>
       </div>
     </div>
 
-    <div class="bg-white rounded-lg shadow-lg p-6">
-      <h2 class="text-2xl font-bold text-primary-green mb-6">📈 Indicadores</h2>
-      <div class="grid grid-cols-3 gap-4">
-        <div class="text-center p-4 bg-gray-50 rounded-lg">
-          <div class="text-3xl mb-2">🎯</div>
-          <p class="text-2xl font-bold text-gray-800">{{ stats.totalFazendas }}</p>
-          <p class="text-sm text-gray-600 mt-1">Propriedades</p>
-        </div>
-        <div class="text-center p-4 bg-gray-50 rounded-lg">
-          <div class="text-3xl mb-2">🌱</div>
-          <p class="text-2xl font-bold text-gray-800">{{ stats.totalSafras }}</p>
-          <p class="text-sm text-gray-600 mt-1">Safras Totais</p>
-        </div>
-        <div class="text-center p-4 bg-gray-50 rounded-lg">
-          <div class="text-3xl mb-2">✅</div>
-          <p class="text-2xl font-bold text-gray-800">{{ stats.safrasAtivas }}</p>
-          <p class="text-sm text-gray-600 mt-1">Em Andamento</p>
-        </div>
+    <div class="bg-white rounded-lg shadow-lg p-6" *ngIf="ultimasAtividades.length > 0">
+      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-4">
+        <h2 class="text-2xl font-bold text-primary-green">Últimas atividades</h2>
+        <a routerLink="/atividades" class="text-sm text-primary-green font-semibold hover:underline">Ver todas</a>
       </div>
+      <ul class="divide-y divide-gray-100">
+        <li *ngFor="let a of ultimasAtividades" class="py-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1">
+          <span class="font-medium text-gray-900">{{ a.tipoOperacao }}</span>
+          <span class="text-sm text-gray-500">
+            {{ a.dataAtividade | date: 'dd/MM/yyyy' }}
+            <span *ngIf="a.talhaoNome" class="text-gray-400"> · {{ a.talhaoNome }}</span>
+          </span>
+        </li>
+      </ul>
     </div>
-  </div>
 
-  <div class="bg-blue-50 border-l-4 border-accent-blue rounded-lg shadow p-6">
-    <h2 class="text-xl font-bold text-accent-blue mb-3">ℹ️ Informações</h2>
-    <p class="text-gray-700 mb-2">Este dashboard apresenta uma visão geral das principais métricas da sua operação agrícola.</p>
-    <p class="text-gray-700">Os dados são atualizados automaticamente conforme você cadastra novas informações no sistema.</p>
-  </div>
+    <div class="bg-blue-50 border-l-4 border-accent-blue rounded-lg shadow p-6">
+      <h2 class="text-xl font-bold text-accent-blue mb-3">ℹ️ Informações</h2>
+      <p class="text-gray-700 mb-2">Este dashboard reúne dados das áreas de fazendas, safras, estoque, financeiro, talhões e atividades.</p>
+      <p class="text-gray-700">Os valores são atualizados ao abrir esta página.</p>
+    </div>
+  </ng-container>
 </div>

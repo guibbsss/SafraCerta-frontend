@@ -133,7 +133,7 @@
         <tbody class="divide-y divide-gray-200">
           <tr *ngFor="let atividade of atividades" class="hover:bg-gray-50 transition">
             <td class="px-6 py-4 text-sm text-gray-900 whitespace-nowrap">{{ atividade.dataAtividade | date: 'dd/MM/yyyy' }}</td>
-            <td class="px-6 py-4 text-sm text-gray-900">{{ atividade.talhaoNome || '—' }}</td>
+            <td class="px-6 py-4 text-sm text-gray-900">{{ talhaoLabel(atividade) }}</td>
             <td class="px-6 py-4 text-sm">
               <span class="inline-flex px-3 py-1 rounded-full text-xs font-semibold bg-green-50 text-green-800 border border-green-100">
                 {{ atividade.tipoOperacao }}
