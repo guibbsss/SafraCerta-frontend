@@ -1,4 +1,11 @@
 <div class="space-y-6">
+  <div
+    *ngIf="feedbackSafra"
+    class="rounded-lg border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-gray-800 shadow-sm"
+    role="status"
+  >
+    {{ feedbackSafra }}
+  </div>
   <div class="flex justify-between items-center bg-white rounded-lg shadow p-6">
     <h1 class="text-3xl font-bold text-primary-green">🌾 Gestão de Safras</h1>
     <button class="bg-primary-green hover:bg-green-700 text-white font-semibold py-2 px-6 rounded-lg transition" (click)="openForm()">+ Nova Safra</button>
@@ -32,6 +39,7 @@
           <label class="block text-sm font-medium text-gray-700 mb-2">Talhão</label>
           <select
             [(ngModel)]="selectedSafra.talhaoId"
+            (ngModelChange)="onTalhaoChange()"
             name="talhaoId"
             #talhaoId="ngModel"
             required
@@ -157,6 +165,63 @@
           <p class="text-xs text-gray-400 mt-1">Preencha quando a colheita for finalizada.</p>
         </div>
       </div>
+
+      <div *ngIf="!editMode" class="border border-gray-200 rounded-lg p-4 space-y-3 bg-gray-50">
+        <h3 class="text-sm font-semibold text-gray-800">Consumo de estoque (opcional)</h3>
+        <p class="text-xs text-gray-600">
+          Escolha o talhão acima para carregar os produtos da fazenda. Pode adicionar várias linhas; cada uma gera uma saída no stock ao criar a safra.
+        </p>
+        <p class="text-xs text-gray-600" *ngIf="insumosCarregando">A carregar produtos da fazenda…</p>
+        <p class="text-xs text-red-600 font-medium" *ngIf="insumosErro">{{ insumosErro }}</p>
+        <p
+          class="text-xs text-amber-700"
+          *ngIf="selectedSafra.talhaoId && !insumosCarregando && !insumosErro && insumosPorFazenda.length === 0"
+        >
+          Nenhum produto cadastrado nesta fazenda — cadastre insumos ou escolha outro talhão.
+        </p>
+        <div *ngFor="let linha of consumoLinhas; let i = index" class="grid grid-cols-1 md:grid-cols-12 gap-2 items-end">
+          <div class="md:col-span-6">
+            <label class="block text-xs font-medium text-gray-700 mb-1">Produto</label>
+            <select
+              [(ngModel)]="linha.insumoId"
+              [name]="'insumoId' + i"
+              class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+              [disabled]="!selectedSafra.talhaoId || insumosPorFazenda.length === 0"
+            >
+              <option [ngValue]="null">Selecione</option>
+              <option *ngFor="let ins of insumosPorFazenda" [ngValue]="ins.id">{{ ins.nome }} ({{ ins.unidadeMedida }}) — {{ ins.quantidadeAtual | number: '1.0-4' }}</option>
+            </select>
+          </div>
+          <div class="md:col-span-3">
+            <label class="block text-xs font-medium text-gray-700 mb-1">Quantidade</label>
+            <input
+              type="number"
+              [(ngModel)]="linha.quantidade"
+              [name]="'qtd' + i"
+              step="0.0001"
+              min="0.0001"
+              inputmode="decimal"
+              placeholder="0"
+              class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+              [disabled]="!selectedSafra.talhaoId"
+            />
+          </div>
+          <div class="md:col-span-3 flex gap-2">
+            <button
+              type="button"
+              (click)="removeConsumoLinha(i)"
+              class="text-sm text-red-600 hover:underline py-2"
+            >Remover</button>
+          </div>
+        </div>
+        <button
+          type="button"
+          (click)="addConsumoLinha()"
+          [disabled]="!selectedSafra.talhaoId || insumosPorFazenda.length === 0"
+          class="text-sm font-medium text-primary-green hover:underline disabled:opacity-50 disabled:cursor-not-allowed"
+        >+ Adicionar produto</button>
+      </div>
+
       <div class="flex gap-3 pt-4">
         <button
           type="submit"
@@ -179,6 +244,7 @@
             <th class="px-6 py-3 text-left text-sm font-semibold">Data Plantio</th>
             <th class="px-6 py-3 text-left text-sm font-semibold">Colheita Prevista</th>
             <th class="px-6 py-3 text-left text-sm font-semibold">Status</th>
+            <th class="px-6 py-3 text-left text-sm font-semibold">Consumo estoque</th>
             <th class="px-6 py-3 text-left text-sm font-semibold">Ações</th>
           </tr>
         </thead>
@@ -198,6 +264,9 @@
               }">
                 {{ safra.status }}
               </span>
+            </td>
+            <td class="px-6 py-4 text-sm text-gray-700">
+              {{ consumoCount(safra) }}
             </td>
             <td class="px-6 py-4 text-sm">
               <button class="text-2xl hover:scale-110 transition mr-2" (click)="openForm(safra)" title="Editar">✏️</button>

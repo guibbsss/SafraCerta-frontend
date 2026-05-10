@@ -1,5 +1,19 @@
 export type SafraStatus = 'PLANTADA' | 'CRESCIMENTO' | 'COLHEITA' | 'FINALIZADA';
 
+/** Resposta do backend (GET / safras). */
+export interface SafraConsumoResposta {
+  movimentacaoId: number;
+  insumoId: number;
+  insumoNome: string;
+  quantidade: number;
+}
+
+/** Corpo opcional apenas na criação (POST /safras). */
+export interface SafraConsumoInsumoPayload {
+  insumoId: number;
+  quantidade: number;
+}
+
 export interface Safra {
   id?: number;
   nome: string;
@@ -12,4 +26,6 @@ export interface Safra {
   dataColheitaReal?: string;
   producaoEstimada?: number;
   producaoReal?: number;
+  /** GET: movimentações registadas. POST (criação): `insumoId` + `quantidade`. */
+  consumosInsumo?: SafraConsumoResposta[] | SafraConsumoInsumoPayload[];
 }

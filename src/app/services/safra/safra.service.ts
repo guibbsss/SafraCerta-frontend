@@ -20,10 +20,6 @@ export class SafraService {
     return this.http.get<Safra>(`${this.apiUrl}/${id}`);
   }
 
-  getByTalhao(talhaoId: number): Observable<Safra[]> {
-    return this.http.get<Safra[]>(`${this.apiUrl}/talhao/${talhaoId}`);
-  }
-
   create(safra: Safra): Observable<Safra> {
     return this.http.post<Safra>(this.apiUrl, safra);
   }

@@ -3,8 +3,10 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { SafraService } from '../../../services/safra/safra.service';
 import { TalhaoService } from '../../../services/talhao/talhao.service';
+import { InsumoService } from '../../../services/insumo/insumo.service';
 import { Safra } from '../../../models/safra.model';
 import { Talhao } from '../../../models/talhao.model';
+import { Insumo } from '../../../models/insumo.model';
 
 @Component({
   selector: 'app-safra-list',
@@ -16,6 +18,15 @@ import { Talhao } from '../../../models/talhao.model';
 export class SafraListComponent implements OnInit {
   safras: Safra[] = [];
   talhoes: Talhao[] = [];
+  /** Insumos da fazenda do talhão seleccionado (apenas criação). */
+  insumosPorFazenda: Insumo[] = [];
+  /** Linhas de formulário para consumo de estoque (apenas criação). */
+  consumoLinhas: { insumoId: number | null; quantidade: number | null }[] = [];
+  insumosCarregando = false;
+  /** Erro ao chamar GET /insumos/fazenda/{id} (rede, 403, etc.). */
+  insumosErro: string | null = null;
+  /** Mensagem após criar safra (consumos / sem consumos). */
+  feedbackSafra: string | null = null;
   showForm = false;
   editMode = false;
   selectedSafra: Safra = this.getEmptySafra();
@@ -40,7 +51,8 @@ export class SafraListComponent implements OnInit {
 
   constructor(
     private safraService: SafraService,
-    private talhaoService: TalhaoService
+    private talhaoService: TalhaoService,
+    private insumoService: InsumoService
   ) {}
 
   ngOnInit(): void {
@@ -63,6 +75,11 @@ export class SafraListComponent implements OnInit {
   }
 
   openForm(safra?: Safra): void {
+    this.feedbackSafra = null;
+    this.insumosErro = null;
+    this.insumosCarregando = false;
+    this.consumoLinhas = [];
+    this.insumosPorFazenda = [];
     if (safra) {
       this.editMode = true;
       this.selectedSafra = { ...safra };
@@ -76,22 +93,64 @@ export class SafraListComponent implements OnInit {
   closeForm(): void {
     this.showForm = false;
     this.selectedSafra = this.getEmptySafra();
+    this.consumoLinhas = [];
+    this.insumosPorFazenda = [];
+    this.insumosErro = null;
+    this.insumosCarregando = false;
+  }
+
+  onTalhaoChange(): void {
+    if (this.editMode) {
+      return;
+    }
+    this.consumoLinhas = [];
+    this.insumosErro = null;
+    const tid = this.selectedSafra.talhaoId;
+    if (tid == null || tid === undefined) {
+      this.insumosPorFazenda = [];
+      this.insumosCarregando = false;
+      return;
+    }
+    const t = this.talhoes.find((th) => th.id === tid);
+    const fazendaId = t?.fazendaId;
+    if (fazendaId == null || fazendaId === undefined) {
+      this.insumosPorFazenda = [];
+      this.insumosCarregando = false;
+      this.insumosErro =
+        'Talhão sem fazenda associada na lista. Recarregue a página ou verifique o cadastro do talhão.';
+      return;
+    }
+    this.insumosCarregando = true;
+    this.insumoService.getByFazenda(fazendaId).subscribe({
+      next: (data) => {
+        this.insumosPorFazenda = data;
+        this.insumosCarregando = false;
+        this.insumosErro = null;
+      },
+      error: (err) => {
+        console.error('Erro ao carregar insumos da fazenda:', err);
+        this.insumosPorFazenda = [];
+        this.insumosCarregando = false;
+        this.insumosErro =
+          'Não foi possível carregar os produtos da fazenda. Verifique se está autenticado e tente novamente.';
+      }
+    });
+  }
+
+  addConsumoLinha(): void {
+    this.consumoLinhas.push({ insumoId: null, quantidade: null });
+  }
+
+  removeConsumoLinha(index: number): void {
+    this.consumoLinhas.splice(index, 1);
   }
 
   saveSafra(): void {
     if (!this.isFormValid()) {
       return;
     }
-    const talhaoIdNumber = Number(this.selectedSafra.talhaoId);
-    const payload: Safra = {
-      ...this.selectedSafra,
-      nome: (this.selectedSafra.nome ?? '').trim(),
-      cultura: (this.selectedSafra.cultura ?? '').trim(),
-      talhaoId: talhaoIdNumber,
-      dataColheitaReal: this.selectedSafra.dataColheitaReal || undefined,
-      producaoEstimada: this.normalizeProducao(this.selectedSafra.producaoEstimada),
-      producaoReal: this.normalizeProducao(this.selectedSafra.producaoReal)
-    };
+    const consumosPayload = this.buildConsumosPayload();
+    const payload = this.buildSafraPayload(consumosPayload);
 
     if (this.editMode && this.selectedSafra.id) {
       this.safraService.update(this.selectedSafra.id, payload).subscribe({
@@ -104,12 +163,44 @@ export class SafraListComponent implements OnInit {
     } else {
       this.safraService.create(payload).subscribe({
         next: () => {
+          if (consumosPayload.length > 0) {
+            this.feedbackSafra = `Safra criada com ${consumosPayload.length} saída(s) registada(s) no estoque (ver Estoque → Saídas).`;
+          } else {
+            this.feedbackSafra =
+              'Safra criada sem consumo de stock. Para registar saídas automaticamente, na criação use "+ Adicionar produto" com produto e quantidade (só é possível ao criar, não ao editar).';
+          }
           this.loadSafras();
           this.closeForm();
         },
         error: (error) => console.error('Erro ao criar safra:', error)
       });
     }
+  }
+
+  /**
+   * Monta o corpo do pedido sem misturar `consumosInsumo` em formato de resposta da API
+   * no campo enviado ao POST (apenas lista { insumoId, quantidade }).
+   */
+  private buildSafraPayload(consumosPayload: { insumoId: number; quantidade: number }[]): Safra {
+    const rest = { ...this.selectedSafra };
+    delete rest.consumosInsumo;
+    const talhaoIdNumber = Number(this.selectedSafra.talhaoId);
+    const payload: Safra = {
+      ...rest,
+      nome: (this.selectedSafra.nome ?? '').trim(),
+      cultura: (this.selectedSafra.cultura ?? '').trim(),
+      talhaoId: talhaoIdNumber,
+      dataColheitaReal: this.selectedSafra.dataColheitaReal || undefined,
+      producaoEstimada: this.normalizeProducao(this.selectedSafra.producaoEstimada),
+      producaoReal: this.normalizeProducao(this.selectedSafra.producaoReal)
+    };
+    if (this.editMode) {
+      return payload;
+    }
+    if (consumosPayload.length > 0) {
+      payload.consumosInsumo = consumosPayload;
+    }
+    return payload;
   }
 
   openDeleteModal(safra: Safra): void {
@@ -227,7 +318,47 @@ export class SafraListComponent implements OnInit {
     if (s.producaoReal !== undefined && s.producaoReal !== null) {
       if (s.producaoReal < 0 || s.producaoReal > this.PRODUCAO_MAX) return false;
     }
+    if (!this.isConsumosLinhasValidas()) {
+      return false;
+    }
     return true;
+  }
+
+  private isConsumosLinhasValidas(): boolean {
+    if (this.editMode) {
+      return true;
+    }
+    const seen = new Set<number>();
+    for (const l of this.consumoLinhas) {
+      const hasInsumo = l.insumoId != null && l.insumoId > 0;
+      const hasQtd = l.quantidade != null && l.quantidade > 0;
+      if (hasInsumo !== hasQtd) {
+        return false;
+      }
+      if (hasInsumo && hasQtd) {
+        const id = l.insumoId as number;
+        if (seen.has(id)) {
+          return false;
+        }
+        seen.add(id);
+      }
+    }
+    return true;
+  }
+
+  private buildConsumosPayload(): { insumoId: number; quantidade: number }[] {
+    return this.consumoLinhas
+      .filter(
+        (l) =>
+          l.insumoId != null &&
+          Number(l.insumoId) > 0 &&
+          l.quantidade != null &&
+          Number(l.quantidade) > 0
+      )
+      .map((l) => ({
+        insumoId: Number(l.insumoId),
+        quantidade: Number(l.quantidade)
+      }));
   }
 
   isColheitaPrevistaInvalid(): boolean {
@@ -238,6 +369,14 @@ export class SafraListComponent implements OnInit {
   isColheitaRealInvalid(): boolean {
     const s = this.selectedSafra;
     return !!(s.dataPlantio && s.dataColheitaReal && s.dataColheitaReal < s.dataPlantio);
+  }
+
+  consumoCount(safra: Safra): string {
+    const c = safra.consumosInsumo;
+    if (!c || !Array.isArray(c) || c.length === 0) {
+      return '—';
+    }
+    return `${c.length} item(ns)`;
   }
 
   private normalizeProducao(value: number | null | undefined): number | undefined {
