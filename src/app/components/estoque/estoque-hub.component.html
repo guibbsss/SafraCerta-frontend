@@ -1,0 +1,39 @@
+<div class="max-w-7xl mx-auto">
+  <h1 class="text-3xl font-bold text-gray-800 mb-2">Estoque</h1>
+  <p class="text-gray-600 mb-8">Escolha uma área para gerir entradas, saídas ou o saldo atual.</p>
+
+  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    <a
+      routerLink="/estoque/entradas"
+      class="flex gap-4 p-6 rounded-xl shadow-md hover:shadow-lg transition-shadow bg-emerald-50 border border-emerald-100 cursor-pointer no-underline text-inherit"
+    >
+      <span class="text-4xl shrink-0 leading-none" aria-hidden="true">📥</span>
+      <div class="min-w-0">
+        <h2 class="text-lg font-bold text-gray-800">Entradas no estoque</h2>
+        <p class="text-sm text-gray-600 mt-1">Registar e consultar entradas de insumos por fazenda.</p>
+      </div>
+    </a>
+
+    <a
+      routerLink="/estoque/saidas"
+      class="flex gap-4 p-6 rounded-xl shadow-md hover:shadow-lg transition-shadow bg-amber-50 border border-amber-100 cursor-pointer no-underline text-inherit"
+    >
+      <span class="text-4xl shrink-0 leading-none" aria-hidden="true">📤</span>
+      <div class="min-w-0">
+        <h2 class="text-lg font-bold text-gray-800">Saídas no estoque</h2>
+        <p class="text-sm text-gray-600 mt-1">Registar e consultar saídas de insumos por fazenda.</p>
+      </div>
+    </a>
+
+    <a
+      routerLink="/estoque/atual"
+      class="flex gap-4 p-6 rounded-xl shadow-md hover:shadow-lg transition-shadow bg-slate-50 border border-slate-200 cursor-pointer no-underline text-inherit"
+    >
+      <span class="text-4xl shrink-0 leading-none" aria-hidden="true">📊</span>
+      <div class="min-w-0">
+        <h2 class="text-lg font-bold text-gray-800">Estoque atual</h2>
+        <p class="text-sm text-gray-600 mt-1">Saldo por insumo e fazenda, com valores estimados.</p>
+      </div>
+    </a>
+  </div>
+</div>

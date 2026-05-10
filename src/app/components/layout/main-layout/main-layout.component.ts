@@ -26,7 +26,7 @@ export class MainLayoutComponent {
     { path: '/talhoes', icon: '📐', label: 'Talhões' },
     { path: '/safras', icon: '🌾', label: 'Safras' },
     { path: '/atividades', icon: '📝', label: 'Atividades' },
-    { path: '/estoque', icon: '📦', label: 'Estoque' },
+    { path: '/estoque', icon: '📦', label: 'Estoque', linkActiveExact: false },
     { path: '/financeiro', icon: '💰', label: 'Financeiro' },
     {
       path: '/administracao',

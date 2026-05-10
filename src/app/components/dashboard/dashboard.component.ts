@@ -4,7 +4,7 @@ import { FazendaService } from '../../services/fazenda/fazenda.service';
 import { AuthService } from '../../services/auth/auth.service';
 import { SafraService } from '../../services/safra/safra.service';
 import { FinanceiroService } from '../../services/financeiro/financeiro.service';
-import { EstoqueService } from '../../services/estoque/estoque.service';
+import { InsumoService } from '../../services/insumo/insumo.service';
 
 @Component({
   selector: 'app-dashboard',
@@ -29,7 +29,7 @@ export class DashboardComponent implements OnInit {
     private authService: AuthService,
     private safraService: SafraService,
     private financeiroService: FinanceiroService,
-    private estoqueService: EstoqueService
+    private insumoService: InsumoService
   ) {}
 
   ngOnInit(): void {
@@ -56,9 +56,12 @@ export class DashboardComponent implements OnInit {
       }
     });
 
-    this.estoqueService.getAll().subscribe({
+    this.insumoService.getAll().subscribe({
       next: (data) => {
-        this.stats.totalEstoque = data.reduce((sum, item) => sum + (item.quantidade * item.valorUnitario), 0);
+        this.stats.totalEstoque = data.reduce(
+          (sum, item) => sum + (item.valorTotalEstimado ?? 0),
+          0
+        );
       },
       error: (error) => {
         this.stats.totalEstoque = 83750;

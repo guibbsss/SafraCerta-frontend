@@ -8,7 +8,10 @@ import { FazendaListComponent } from './components/fazenda/fazenda-list/fazenda-
 import { TalhaoListComponent } from './components/talhao/talhao-list/talhao-list.component';
 import { SafraListComponent } from './components/safra/safra-list/safra-list.component';
 import { AtividadeListComponent } from './components/atividade/atividade-list/atividade-list.component';
-import { EstoqueListComponent } from './components/estoque/estoque-list/estoque-list.component';
+import { EstoqueShellComponent } from './components/estoque/estoque-shell.component';
+import { EstoqueHubComponent } from './components/estoque/estoque-hub.component';
+import { EstoqueAtualComponent } from './components/estoque/estoque-atual/estoque-atual.component';
+import { EstoqueMovimentacaoComponent } from './components/estoque/estoque-movimentacao/estoque-movimentacao.component';
 import { FinanceiroListComponent } from './components/financeiro/financeiro-list/financeiro-list.component';
 import { DashboardComponent } from './components/dashboard/dashboard.component';
 import { AdministracaoShellComponent } from './components/administracao/administracao-shell.component';
@@ -32,7 +35,24 @@ export const routes: Routes = [
       { path: 'talhoes', component: TalhaoListComponent },
       { path: 'safras', component: SafraListComponent },
       { path: 'atividades', component: AtividadeListComponent },
-      { path: 'estoque', component: EstoqueListComponent },
+      {
+        path: 'estoque',
+        component: EstoqueShellComponent,
+        children: [
+          { path: '', component: EstoqueHubComponent },
+          { path: 'atual', component: EstoqueAtualComponent },
+          {
+            path: 'entradas',
+            component: EstoqueMovimentacaoComponent,
+            data: { tipo: 'ENTRADA' }
+          },
+          {
+            path: 'saidas',
+            component: EstoqueMovimentacaoComponent,
+            data: { tipo: 'SAIDA' }
+          }
+        ]
+      },
       { path: 'financeiro', component: FinanceiroListComponent },
       {
         path: 'administracao',

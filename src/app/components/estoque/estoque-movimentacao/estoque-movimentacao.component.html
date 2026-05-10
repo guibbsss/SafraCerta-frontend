@@ -1,0 +1,201 @@
+<div class="space-y-6">
+  <div class="flex justify-between items-center bg-white rounded-lg shadow p-6">
+    <div>
+      <a routerLink="/estoque" class="text-sm text-primary-green hover:underline mb-2 inline-block">← Voltar ao Estoque</a>
+      <h1 class="text-3xl font-bold text-primary-green">{{ pageTitle }}</h1>
+      <p class="text-gray-600 text-sm mt-1">Selecione a fazenda e o insumo para cada registo.</p>
+    </div>
+    <button
+      type="button"
+      class="bg-primary-green hover:bg-green-700 text-white font-semibold py-2 px-6 rounded-lg transition"
+      (click)="openForm()"
+    >
+      + Novo registo
+    </button>
+  </div>
+
+  <div class="bg-white rounded-lg shadow-lg p-6" *ngIf="showForm">
+    <h2 class="text-2xl font-bold text-gray-800 mb-6">{{ editMode ? 'Editar movimentação' : 'Nova movimentação' }}</h2>
+    <form (ngSubmit)="save()" class="space-y-4">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">Fazenda</label>
+          <select
+            [(ngModel)]="formFazendaId"
+            name="formFazendaId"
+            (ngModelChange)="onFazendaChange()"
+            required
+            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-green"
+          >
+            <option [ngValue]="0">Selecione a fazenda</option>
+            <option *ngFor="let f of fazendas" [ngValue]="f.id">{{ f.nome }}</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">Insumo</label>
+          <select
+            [(ngModel)]="formInsumoId"
+            name="formInsumoId"
+            required
+            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-green"
+          >
+            <option [ngValue]="0">Selecione o insumo</option>
+            <option *ngFor="let i of insumosDaFazenda" [ngValue]="i.id">{{ i.nome }}</option>
+          </select>
+          <button
+            type="button"
+            class="mt-2 text-sm text-primary-green hover:underline"
+            (click)="showNovoInsumo = !showNovoInsumo"
+            *ngIf="formFazendaId"
+          >
+            {{ showNovoInsumo ? 'Cancelar novo insumo' : '+ Cadastrar insumo nesta fazenda' }}
+          </button>
+        </div>
+      </div>
+
+      <div class="border rounded-lg p-4 bg-gray-50 space-y-3" *ngIf="showNovoInsumo && formFazendaId">
+        <p class="text-sm font-medium text-gray-700">Novo insumo (saldo inicial 0)</p>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+          <input
+            type="text"
+            [(ngModel)]="novoNome"
+            name="novoNome"
+            placeholder="Nome"
+            class="px-3 py-2 border rounded-lg"
+          />
+          <input
+            type="text"
+            [(ngModel)]="novoCategoria"
+            name="novoCategoria"
+            placeholder="Categoria"
+            class="px-3 py-2 border rounded-lg"
+          />
+          <input
+            type="text"
+            [(ngModel)]="novoUnidade"
+            name="novoUnidade"
+            placeholder="Unidade (kg, L)"
+            class="px-3 py-2 border rounded-lg"
+          />
+        </div>
+        <button type="button" class="text-sm bg-primary-green text-white px-4 py-2 rounded-lg" (click)="criarInsumoRapido()">
+          Criar insumo
+        </button>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">Quantidade</label>
+          <input
+            type="number"
+            [(ngModel)]="formQuantidade"
+            name="formQuantidade"
+            required
+            step="any"
+            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-green"
+          />
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">Data e hora</label>
+          <input
+            type="datetime-local"
+            [(ngModel)]="formDataLocal"
+            name="formDataLocal"
+            required
+            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-green"
+          />
+        </div>
+      </div>
+
+      <div *ngIf="tipo === 'ENTRADA'" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">Valor unitário (R$)</label>
+          <input
+            type="number"
+            [(ngModel)]="formValorUnitario"
+            name="formValorUnitario"
+            step="0.01"
+            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-green"
+          />
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">Fornecedor</label>
+          <input
+            type="text"
+            [(ngModel)]="formFornecedor"
+            name="formFornecedor"
+            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-green"
+          />
+        </div>
+      </div>
+
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-2">Observação</label>
+        <input
+          type="text"
+          [(ngModel)]="formObservacao"
+          name="formObservacao"
+          class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-green"
+        />
+      </div>
+
+      <div class="flex gap-3 pt-4">
+        <button type="submit" class="bg-primary-green hover:bg-green-700 text-white font-semibold py-2 px-6 rounded-lg">
+          Salvar
+        </button>
+        <button type="button" class="bg-gray-500 hover:bg-gray-600 text-white font-semibold py-2 px-6 rounded-lg" (click)="closeForm()">
+          Cancelar
+        </button>
+      </div>
+    </form>
+  </div>
+
+  <div class="bg-white rounded-lg shadow-lg overflow-hidden">
+    <div class="overflow-x-auto" *ngIf="movimentacoes.length > 0; else noData">
+      <table class="w-full">
+        <thead class="bg-primary-green text-white">
+          <tr>
+            <th class="px-6 py-3 text-left text-sm font-semibold">Data</th>
+            <th class="px-6 py-3 text-left text-sm font-semibold">Fazenda</th>
+            <th class="px-6 py-3 text-left text-sm font-semibold">Insumo</th>
+            <th class="px-6 py-3 text-left text-sm font-semibold">Categoria</th>
+            <th class="px-6 py-3 text-left text-sm font-semibold">Quantidade</th>
+            <th class="px-6 py-3 text-left text-sm font-semibold" *ngIf="tipo === 'ENTRADA'">Valor unit.</th>
+            <th class="px-6 py-3 text-left text-sm font-semibold" *ngIf="tipo === 'ENTRADA'">Valor total</th>
+            <th class="px-6 py-3 text-left text-sm font-semibold" *ngIf="tipo === 'ENTRADA'">Fornecedor</th>
+            <th class="px-6 py-3 text-left text-sm font-semibold">Obs.</th>
+            <th class="px-6 py-3 text-left text-sm font-semibold">Ações</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-200">
+          <tr *ngFor="let m of movimentacoes" class="hover:bg-gray-50 transition">
+            <td class="px-6 py-4 text-sm whitespace-nowrap">{{ m.dataMovimentacao | date : 'short' }}</td>
+            <td class="px-6 py-4 text-sm">{{ m.fazendaNome }}</td>
+            <td class="px-6 py-4 text-sm">{{ m.insumoNome }}</td>
+            <td class="px-6 py-4 text-sm">
+              <span class="px-3 py-1 rounded-full text-xs font-semibold" [ngClass]="categoriaClass(m.categoria)">
+                {{ m.categoria || '—' }}
+              </span>
+            </td>
+            <td class="px-6 py-4 text-sm">{{ m.quantidade }}</td>
+            <td class="px-6 py-4 text-sm" *ngIf="tipo === 'ENTRADA'">
+              {{ m.valorUnitario != null ? (m.valorUnitario | number : '1.2-2') : '—' }}
+            </td>
+            <td class="px-6 py-4 text-sm" *ngIf="tipo === 'ENTRADA'">
+              {{ m.valorTotal != null ? (m.valorTotal | number : '1.2-2') : '—' }}
+            </td>
+            <td class="px-6 py-4 text-sm" *ngIf="tipo === 'ENTRADA'">{{ m.fornecedor || '—' }}</td>
+            <td class="px-6 py-4 text-sm max-w-xs truncate" [title]="m.observacao || ''">{{ m.observacao || '—' }}</td>
+            <td class="px-6 py-4 text-sm whitespace-nowrap">
+              <button type="button" class="text-2xl mr-2 hover:scale-110 transition" (click)="openForm(m)" title="Editar">✏️</button>
+              <button type="button" class="text-2xl hover:scale-110 transition" (click)="deleteMov(m.id!)" title="Excluir">🗑️</button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <ng-template #noData>
+      <div class="p-12 text-center text-gray-500">Nenhuma movimentação registada.</div>
+    </ng-template>
+  </div>
+</div>
